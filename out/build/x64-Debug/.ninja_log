@@ -129,3 +129,14 @@
 23	1713	7494334501873957	logger/client_logger/CMakeFiles/mp_os_lggr_clnt_lggr.dir/src/client_logger.cpp.obj	56163d94753496d6
 1714	2201	7494334502761577	logger/client_logger/mp_os_lggr_clnt_lggr.lib	2679ddb8046c115b
 2201	2658	7494334510351265	logger/client_logger/tests/mp_os_lggr_clnt_lggr_tests.exe	8c9b7c3a408f2228
+11	1918	7494337100705986	logger/client_logger/CMakeFiles/mp_os_lggr_clnt_lggr.dir/src/client_logger.cpp.obj	56163d94753496d6
+1919	2370	7494337101967720	logger/client_logger/mp_os_lggr_clnt_lggr.lib	2679ddb8046c115b
+2370	2848	7494337108978962	logger/client_logger/tests/mp_os_lggr_clnt_lggr_tests.exe	8c9b7c3a408f2228
+11	2261	7494337314907291	logger/client_logger/tests/CMakeFiles/mp_os_lggr_clnt_lggr_tests.dir/client_logger_tests.cpp.obj	deef8d29da85593d
+2261	2908	7494337320602048	logger/client_logger/tests/mp_os_lggr_clnt_lggr_tests.exe	8c9b7c3a408f2228
+25	1953	7494337437237448	logger/client_logger/tests/CMakeFiles/mp_os_lggr_clnt_lggr_tests.dir/client_logger_tests.cpp.obj	deef8d29da85593d
+1953	2592	7494337442573168	logger/client_logger/tests/mp_os_lggr_clnt_lggr_tests.exe	8c9b7c3a408f2228
+23	1716	7494337839085542	logger/client_logger/CMakeFiles/mp_os_lggr_clnt_lggr.dir/src/client_logger.cpp.obj	56163d94753496d6
+37	1858	7494337840506001	logger/client_logger/tests/CMakeFiles/mp_os_lggr_clnt_lggr_tests.dir/client_logger_tests.cpp.obj	deef8d29da85593d
+1717	2169	7494337840047233	logger/client_logger/mp_os_lggr_clnt_lggr.lib	2679ddb8046c115b
+2169	2732	7494337848164047	logger/client_logger/tests/mp_os_lggr_clnt_lggr_tests.exe	8c9b7c3a408f2228

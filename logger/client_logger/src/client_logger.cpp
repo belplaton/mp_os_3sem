@@ -173,7 +173,7 @@ logger const* client_logger::log(
     for (auto i = 0; i < logger::severities_list.size(); i++)
     {
         auto temp_severity = logger::severities_list[i];
-        if ((temp_severity & severity) == temp_severity)
+        if ((temp_severity & severity) != logger::severity::none)
         {
             if ((_console_severity & temp_severity) != logger::severity::none)
             {
@@ -185,7 +185,7 @@ logger const* client_logger::log(
             {
                 if ((iter->second.second & temp_severity) != logger::severity::none)
                 {
-                    *(iter->second.first) << format_string(text, temp_severity);
+                    *(iter->second.first) << format_string(text, temp_severity) << std::endl;
                 }
 
                 iter++;
@@ -239,7 +239,6 @@ std::string client_logger::format_string(const std::string& message, logger::sev
         iter++;
     }
 
-    sresult << '\n';
     auto result = sresult.str();
     return result;
 }

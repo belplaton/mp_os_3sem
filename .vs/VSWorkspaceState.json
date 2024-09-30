@@ -7,16 +7,16 @@
   },
   "ExpandedNodes": [
     "",
-    "\\allocator",
     "\\associative_container",
     "\\logger",
     "\\logger\\client_logger",
+    "\\logger\\client_logger\\src",
     "\\logger\\client_logger\\tests",
     "\\logger\\logger",
     "\\logger\\logger\\src",
     "\\logger\\server_logger",
     "\\logger\\server_logger\\src"
   ],
-  "SelectedNode": "\\logger\\logger\\src\\logger.cpp",
+  "SelectedNode": "\\logger\\client_logger\\tests\\client_logger_tests.cpp",
   "PreviewInSolutionExplorer": false
 }
