@@ -2,9 +2,12 @@
 #define MATH_PRACTICE_AND_OPERATING_SYSTEMS_LOGGER_H
 
 #include <iostream>
+#include <vector>
 
 class logger
 {
+
+friend class logger_builder;
 
 public:
 
@@ -19,6 +22,18 @@ public:
         error = 1 << 4,
         critical = 1 << 5,
     };
+
+    static const std::vector<severity> severities_list;
+
+    friend logger::severity operator~ (logger::severity a);
+    friend logger::severity operator| (logger::severity a, logger::severity b);
+    friend logger::severity operator& (logger::severity a, logger::severity b);
+    friend logger::severity operator^ (logger::severity a, logger::severity b);
+    friend logger::severity& operator|= (logger::severity& a, logger::severity b);
+    friend logger::severity& operator&= (logger::severity& a, logger::severity b);
+    friend logger::severity& operator^= (logger::severity& a, logger::severity b);
+
+public:
 
     enum class log_type
     {
@@ -75,14 +90,5 @@ protected:
     static std::string current_time_to_string() noexcept;
 
 };
-
-
-inline logger::severity operator~ (logger::severity a);
-inline logger::severity operator| (logger::severity a, logger::severity b);
-inline logger::severity operator& (logger::severity a, logger::severity b);
-inline logger::severity operator^ (logger::severity a, logger::severity b);
-inline logger::severity& operator|= (logger::severity& a, logger::severity b);
-inline logger::severity& operator&= (logger::severity& a, logger::severity b);
-inline logger::severity& operator^= (logger::severity& a, logger::severity b);
 
 #endif //MATH_PRACTICE_AND_OPERATING_SYSTEMS_LOGGER_H

@@ -3,6 +3,25 @@
 #include <sstream>
 #include <algorithm>
 
+const std::vector<logger::severity> logger::severities_list
+{
+    logger::severity::none,
+    logger::severity::trace,
+    logger::severity::debug,
+    logger::severity::information,
+    logger::severity::warning,
+    logger::severity::error,
+    logger::severity::critical
+};
+
+logger::severity operator~ (logger::severity a) { return (logger::severity)~(logger::severity_type)a; }
+logger::severity operator| (logger::severity a, logger::severity b) { return (logger::severity)((logger::severity_type)a | (logger::severity_type)b); }
+logger::severity operator& (logger::severity a, logger::severity b) { return (logger::severity)((logger::severity_type)a & (logger::severity_type)b); }
+logger::severity operator^ (logger::severity a, logger::severity b) { return (logger::severity)((logger::severity_type)a ^ (logger::severity_type)b); }
+logger::severity& operator|= (logger::severity& a, logger::severity b) { return (logger::severity&)((logger::severity_type&)a |= (logger::severity_type)b); }
+logger::severity& operator&= (logger::severity& a, logger::severity b) { return (logger::severity&)((logger::severity_type&)a &= (logger::severity_type)b); }
+logger::severity& operator^= (logger::severity& a, logger::severity b) { return (logger::severity&)((logger::severity_type&)a ^= (logger::severity_type)b); }
+
 logger const *logger::trace(
     std::string const &message) const noexcept
 {
@@ -61,7 +80,7 @@ std::string logger::severity_to_string(
     throw std::out_of_range("Invalid severity value");
 }
 
-static logger::severity string_to_severity(
+logger::severity logger::string_to_severity(
     const std::string& value)
 {
     auto upper = value;
@@ -96,7 +115,7 @@ static logger::severity string_to_severity(
     throw std::out_of_range("Invalid severity value");
 }
 
-static std::string log_type_to_string(
+std::string logger::log_type_to_string(
     logger::log_type log_type)
 {
     switch (log_type)
@@ -110,7 +129,7 @@ static std::string log_type_to_string(
     throw std::out_of_range("Invalid log_type value");
 }
 
-static logger::log_type string_to_log_type(
+logger::log_type logger::string_to_log_type(
     const std::string& value)
 {
     auto upper = value;
@@ -119,7 +138,7 @@ static logger::log_type string_to_log_type(
 
     if (upper == "CONSOLE")
     {
-        return logger::log_type::console
+        return logger::log_type::console;
     }
     else if (upper == "FILES")
     {
@@ -158,11 +177,3 @@ std::string logger::current_time_to_string() noexcept
 
     return result_stream.str();
 }
-
-inline logger::severity operator~ (logger::severity a) { return (logger::severity)~(logger::severity_type)a; }
-inline logger::severity operator| (logger::severity a, logger::severity b) { return (logger::severity)((logger::severity_type)a | (logger::severity_type)b); }
-inline logger::severity operator& (logger::severity a, logger::severity b) { return (logger::severity)((logger::severity_type)a & (logger::severity_type)b); }
-inline logger::severity operator^ (logger::severity a, logger::severity b) { return (logger::severity)((logger::severity_type)a ^ (logger::severity_type)b); }
-inline logger::severity& operator|= (logger::severity& a, logger::severity b) { return (logger::severity&)((logger::severity_type&)a |= (logger::severity_type)b); }
-inline logger::severity& operator&= (logger::severity& a, logger::severity b) { return (logger::severity&)((logger::severity_type&)a &= (logger::severity_type)b); }
-inline logger::severity& operator^= (logger::severity& a, logger::severity b) { return (logger::severity&)((logger::severity_type&)a ^= (logger::severity_type)b); }

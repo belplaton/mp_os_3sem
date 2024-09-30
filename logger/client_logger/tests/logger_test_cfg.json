@@ -1,0 +1,26 @@
+{
+	"logger":
+	{
+		"format": "%m",
+		"log_types":
+		{
+			[
+				"files":
+				{
+					"file_1":
+					{
+						"severity": ["error"]
+					},
+					"file_2":
+					{
+						"severity": ["debug"]
+					},
+				},
+				"console":
+				{
+					"severity": ["critical"]
+				}
+			]
+		}
+	}
+}

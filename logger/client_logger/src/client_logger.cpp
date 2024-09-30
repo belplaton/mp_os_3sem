@@ -7,7 +7,7 @@ std::map<std::string, std::weak_ptr<client_logger::log_stream>> client_logger::_
 
 #pragma region client_logger::log_stream
 
-explicit client_logger::log_stream::log_stream(const std::string& path) :
+client_logger::log_stream::log_stream(const std::string& path) :
     _stream(nullptr)
 {
     try
@@ -59,9 +59,15 @@ std::ostream& client_logger::log_stream::operator<<(std::string const& str) cons
     return (*_stream << str).flush();
 }
 
+client_logger::log_stream::~log_stream()
+{
+    delete _stream;
+    _stream == nullptr;
+}
+
 #pragma endregion
 
-explicit client_logger::client_logger(
+client_logger::client_logger(
     const std::map<std::string, logger::severity>& files_severity, logger::severity console_severity, const std::string& output_format):
     _files_severity(),
     _console_severity(console_severity),
@@ -164,21 +170,30 @@ logger const* client_logger::log(
     const std::string& text,
     logger::severity severity) const noexcept
 {
-    if ((_console_severity & severity) != logger::severity::none)
+    for (auto i = 0; i < logger::severities_list.size(); i++)
     {
-        std::cerr << format_string(text, severity) << std::endl;
-    }
-
-    auto iter = _files_severity.begin();
-    while (iter != _files_severity.end())
-    {
-        if ((iter->second.second & severity) != logger::severity::none)
+        auto temp_severity = logger::severities_list[i];
+        if ((temp_severity & severity) == temp_severity)
         {
-            *(iter->second.first) << format_string(text, severity);
-        }
+            if ((_console_severity & temp_severity) != logger::severity::none)
+            {
+                std::cerr << format_string(text, temp_severity) << std::endl;
+            }
 
-        iter++;
+            auto iter = _files_severity.begin();
+            while (iter != _files_severity.end())
+            {
+                if ((iter->second.second & temp_severity) != logger::severity::none)
+                {
+                    *(iter->second.first) << format_string(text, temp_severity);
+                }
+
+                iter++;
+            }
+        }
     }
+
+    return this;
     //throw not_implemented("logger const *client_logger::log(const std::string &text, logger::severity severity) const noexcept", "your code should be here...");
 }
 
@@ -192,6 +207,11 @@ std::string client_logger::format_string(const std::string& message, logger::sev
         {
         case '%':
             iter++;
+            if (iter == _output_format.end())
+            {
+                throw std::logic_error("Format error! Format pointers should starts with '%' and ends with modificator type");
+            }
+
             switch (*iter)
             {
             case 'd':
@@ -209,6 +229,8 @@ std::string client_logger::format_string(const std::string& message, logger::sev
             default:
                 throw std::logic_error("Unknown format modificator");
             }
+
+            break;
         default:
             sresult << *iter;
             break;
@@ -217,6 +239,7 @@ std::string client_logger::format_string(const std::string& message, logger::sev
         iter++;
     }
 
+    sresult << '\n';
     auto result = sresult.str();
     return result;
 }

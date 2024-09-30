@@ -157,10 +157,13 @@ logger_builder* client_logger_builder::transform_with_configuration(
                     case (logger::log_type::console):
                         if (log_type_cfg.contains("severity"))
                         {
+                            auto severity = logger::severity::none;
                             for (const auto& severity_name : log_type_cfg["severity"].items())
                             {
-                                _console_severity |= logger::string_to_severity(severity_name.value());
+                                severity |= logger::string_to_severity(severity_name.value());
                             }
+
+                            add_console_stream(severity);
                         }
                         break;
                     case (logger::log_type::files):
