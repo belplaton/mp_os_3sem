@@ -1,0 +1,21 @@
+{
+  "OutputFoldersPerTargetSystem": {
+    "Локальный компьютер": [
+      "out\\build\\x64-Debug",
+      "out\\install\\x64-Debug"
+    ]
+  },
+  "ExpandedNodes": [
+    "",
+    "\\logger",
+    "\\logger\\client_logger",
+    "\\logger\\client_logger\\src",
+    "\\logger\\client_logger\\tests",
+    "\\logger\\logger",
+    "\\logger\\logger\\include",
+    "\\logger\\logger\\src",
+    "\\logger\\server_logger"
+  ],
+  "SelectedNode": "\\logger\\client_logger\\src\\client_logger_builder.cpp",
+  "PreviewInSolutionExplorer": false
+}

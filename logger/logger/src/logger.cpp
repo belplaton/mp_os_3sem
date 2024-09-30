@@ -1,5 +1,7 @@
 #include "../include/logger.h"
 #include <iomanip>
+#include <sstream>
+#include <algorithm>
 
 logger const *logger::trace(
     std::string const &message) const noexcept
@@ -59,6 +61,74 @@ std::string logger::severity_to_string(
     throw std::out_of_range("Invalid severity value");
 }
 
+static logger::severity string_to_severity(
+    const std::string& value)
+{
+    auto upper = value;
+    std::transform(upper.begin(), upper.end(), upper.begin(),
+        [](unsigned char c) { return std::toupper(c); });
+
+    if (upper == "TRACE")
+    {
+        return logger::severity::trace;
+    }
+    else if (upper == "DEBUG")
+    {
+        return logger::severity::debug;
+    }
+    else if (upper == "INFORMATION")
+    {
+        return logger::severity::information;
+    }
+    else if (upper == "WARNING")
+    {
+        return logger::severity::warning;
+    }
+    else if (upper == "ERROR")
+    {
+        return logger::severity::error;
+    }
+    else if (upper == "CRITICAL")
+    {
+        return logger::severity::critical;
+    }
+
+    throw std::out_of_range("Invalid severity value");
+}
+
+static std::string log_type_to_string(
+    logger::log_type log_type)
+{
+    switch (log_type)
+    {
+    case logger::log_type::console:
+        return "CONSOLE";
+    case logger::log_type::files:
+        return "FILES";
+    }
+
+    throw std::out_of_range("Invalid log_type value");
+}
+
+static logger::log_type string_to_log_type(
+    const std::string& value)
+{
+    auto upper = value;
+    std::transform(upper.begin(), upper.end(), upper.begin(),
+        [](unsigned char c) { return std::toupper(c); });
+
+    if (upper == "CONSOLE")
+    {
+        return logger::log_type::console
+    }
+    else if (upper == "FILES")
+    {
+        return logger::log_type::files;
+    }
+
+    throw std::out_of_range("Invalid log_type value");
+}
+
 std::string logger::current_datetime_to_string() noexcept
 {
     auto time = std::time(nullptr);
@@ -68,3 +138,31 @@ std::string logger::current_datetime_to_string() noexcept
 
     return result_stream.str();
 }
+
+std::string logger::current_date_to_string() noexcept
+{
+    auto time = std::time(nullptr);
+
+    std::ostringstream result_stream;
+    result_stream << std::put_time(std::localtime(&time), "%d.%m.%Y");
+
+    return result_stream.str();
+}
+
+std::string logger::current_time_to_string() noexcept
+{
+    auto time = std::time(nullptr);
+
+    std::ostringstream result_stream;
+    result_stream << std::put_time(std::localtime(&time), "%H:%M:%S");
+
+    return result_stream.str();
+}
+
+inline logger::severity operator~ (logger::severity a) { return (logger::severity)~(logger::severity_type)a; }
+inline logger::severity operator| (logger::severity a, logger::severity b) { return (logger::severity)((logger::severity_type)a | (logger::severity_type)b); }
+inline logger::severity operator& (logger::severity a, logger::severity b) { return (logger::severity)((logger::severity_type)a & (logger::severity_type)b); }
+inline logger::severity operator^ (logger::severity a, logger::severity b) { return (logger::severity)((logger::severity_type)a ^ (logger::severity_type)b); }
+inline logger::severity& operator|= (logger::severity& a, logger::severity b) { return (logger::severity&)((logger::severity_type&)a |= (logger::severity_type)b); }
+inline logger::severity& operator&= (logger::severity& a, logger::severity b) { return (logger::severity&)((logger::severity_type&)a &= (logger::severity_type)b); }
+inline logger::severity& operator^= (logger::severity& a, logger::severity b) { return (logger::severity&)((logger::severity_type&)a ^= (logger::severity_type)b); }

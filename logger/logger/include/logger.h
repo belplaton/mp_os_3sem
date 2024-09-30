@@ -8,14 +8,22 @@ class logger
 
 public:
 
-    enum class severity
+    using severity_type = unsigned char;
+    enum class severity : severity_type
     {
-        trace,
-        debug,
-        information,
-        warning,
-        error,
-        critical
+        none = 0,
+        trace = 1 << 0,
+        debug = 1 << 1,
+        information = 1 << 2,
+        warning = 1 << 3,
+        error = 1 << 4,
+        critical = 1 << 5,
+    };
+
+    enum class log_type
+    {
+        files,
+        console
     };
 
 public:
@@ -24,37 +32,57 @@ public:
 
 public:
 
-    virtual logger const *log(
-        std::string const &message,
+    virtual logger const* log(
+        std::string const& message,
         logger::severity severity) const noexcept = 0;
 
 public:
 
-    logger const *trace(
-        std::string const &message) const noexcept;
+    logger const* trace(
+        std::string const& message) const noexcept;
 
-    logger const *debug(
-        std::string const &message) const noexcept;
+    logger const* debug(
+        std::string const& message) const noexcept;
 
-    logger const *information(
-        std::string const &message) const noexcept;
+    logger const* information(
+        std::string const& message) const noexcept;
 
-    logger const *warning(
-        std::string const &message) const noexcept;
+    logger const* warning(
+        std::string const& message) const noexcept;
 
-    logger const *error(
-        std::string const &message) const noexcept;
+    logger const* error(
+        std::string const& message) const noexcept;
 
-    logger const *critical(
-        std::string const &message) const noexcept;
+    logger const* critical(
+        std::string const& message) const noexcept;
 
 protected:
 
     static std::string severity_to_string(
         logger::severity severity);
 
+    static logger::severity string_to_severity(
+        const std::string& value);
+
+    static std::string log_type_to_string(
+        logger::log_type log_type);
+
+    static logger::log_type string_to_log_type(
+        const std::string& value);
+
     static std::string current_datetime_to_string() noexcept;
+    static std::string current_date_to_string() noexcept;
+    static std::string current_time_to_string() noexcept;
 
 };
+
+
+inline logger::severity operator~ (logger::severity a);
+inline logger::severity operator| (logger::severity a, logger::severity b);
+inline logger::severity operator& (logger::severity a, logger::severity b);
+inline logger::severity operator^ (logger::severity a, logger::severity b);
+inline logger::severity& operator|= (logger::severity& a, logger::severity b);
+inline logger::severity& operator&= (logger::severity& a, logger::severity b);
+inline logger::severity& operator^= (logger::severity& a, logger::severity b);
 
 #endif //MATH_PRACTICE_AND_OPERATING_SYSTEMS_LOGGER_H
