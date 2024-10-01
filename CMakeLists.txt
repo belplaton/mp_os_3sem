@@ -3,8 +3,8 @@ project(mp_os)
 
 set(CMAKE_CXX_STANDARD 20)
 
-#add_subdirectory(allocator)
-#add_subdirectory(arithmetic)
-#add_subdirectory(associative_container)
+add_subdirectory(allocator)
+add_subdirectory(arithmetic)
+add_subdirectory(associative_container)
 add_subdirectory(common)
 add_subdirectory(logger)

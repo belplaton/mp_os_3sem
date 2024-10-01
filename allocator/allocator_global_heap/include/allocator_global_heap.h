@@ -16,6 +16,12 @@ private:
     
     logger *_logger;
 
+    struct allocation_header
+    {
+        allocator_global_heap *allocator_ptr;
+        size_t data_size;
+    };
+
 public:
     
     explicit allocator_global_heap(

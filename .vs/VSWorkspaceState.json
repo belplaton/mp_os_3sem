@@ -7,16 +7,16 @@
   },
   "ExpandedNodes": [
     "",
+    "\\allocator",
+    "\\allocator\\allocator",
+    "\\allocator\\allocator\\include",
+    "\\allocator\\allocator\\src",
+    "\\allocator\\allocator_sorted_list",
+    "\\allocator\\allocator_sorted_list\\include",
     "\\associative_container",
-    "\\logger",
-    "\\logger\\client_logger",
-    "\\logger\\client_logger\\src",
-    "\\logger\\client_logger\\tests",
-    "\\logger\\logger",
-    "\\logger\\logger\\src",
-    "\\logger\\server_logger",
-    "\\logger\\server_logger\\src"
+    "\\associative_container\\hash_table",
+    "\\associative_container\\hash_table\\include"
   ],
-  "SelectedNode": "\\logger\\client_logger\\tests\\client_logger_tests.cpp",
+  "SelectedNode": "\\logger\\logger\\src\\logger_guardant.cpp",
   "PreviewInSolutionExplorer": false
 }

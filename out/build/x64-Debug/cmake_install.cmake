@@ -34,6 +34,21 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
+  include("D:/_Platon/_Files/GitHub/mp_os_3sem/out/build/x64-Debug/allocator/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
+  include("D:/_Platon/_Files/GitHub/mp_os_3sem/out/build/x64-Debug/arithmetic/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
+  include("D:/_Platon/_Files/GitHub/mp_os_3sem/out/build/x64-Debug/associative_container/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
   include("D:/_Platon/_Files/GitHub/mp_os_3sem/out/build/x64-Debug/common/cmake_install.cmake")
 endif()
 
