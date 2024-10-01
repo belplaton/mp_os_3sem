@@ -123,8 +123,9 @@ logger_builder* client_logger_builder::transform_with_configuration(
     {
         file >> cfg;
     }
-    catch (const std::exception e)
+    catch (const std::exception& e)
     {
+        std::cerr << e.what() << std::endl;
         throw std::runtime_error("Error reading configuration file: " + std::string(e.what()));
     }
 
@@ -133,60 +134,58 @@ logger_builder* client_logger_builder::transform_with_configuration(
     {
         data = cfg.at(configuration_path);
     }
-    catch (const std::exception e)
+    catch (const std::exception& e)
     {
         throw std::runtime_error("Configuration path not found: " + configuration_path);
     }
 
-    if (cfg.contains("format"))
+    if (data.contains("format"))
     {
-        _output_format = cfg["format"];
+        _output_format = data["format"];
     }
 
-    if (cfg.contains("log_types"))
+    if (data.contains("log_types"))
     {
-        for (const auto& log_type_entry : cfg["log_types"])
+        for (const auto& [log_type_name, log_type_cfg] : data["log_types"].items())
         {
-            for (const auto& [log_type_name, log_type_cfg] : log_type_entry.items())
+            try
             {
-                try
+                auto log_type = logger::string_to_log_type(log_type_name);
+                switch (log_type)
                 {
-                    auto log_type = logger::string_to_log_type(log_type_name);
-                    switch (log_type)
+                case (logger::log_type::console):
+                    if (log_type_cfg.contains("severity"))
                     {
-                    case (logger::log_type::console):
-                        if (log_type_cfg.contains("severity"))
+                        auto severity = logger::severity::none;
+                        for (const auto& severity_name : log_type_cfg["severity"].items())
+                        {
+                            severity |= logger::string_to_severity(severity_name.value());
+                        }
+
+                        add_console_stream(severity);
+                    }
+                    break;
+                case (logger::log_type::files):
+                    for (const auto& [file_name, file_cfg] : log_type_cfg.items())
+                    {
+                        if (file_cfg.contains("severity"))
                         {
                             auto severity = logger::severity::none;
-                            for (const auto& severity_name : log_type_cfg["severity"].items())
+                            for (const auto& severity_name : file_cfg["severity"].items())
                             {
                                 severity |= logger::string_to_severity(severity_name.value());
                             }
 
-                            add_console_stream(severity);
+                            add_file_stream(file_name, severity);
                         }
-                        break;
-                    case (logger::log_type::files):
-                        for (const auto& [file_name, file_cfg] : log_type_cfg.items())
-                        {
-                            if (log_type_cfg.contains("severity"))
-                            {
-                                auto severity = logger::severity::none;
-                                for (const auto& severity_name : log_type_cfg["severity"].items())
-                                {
-                                    severity |= logger::string_to_severity(severity_name.value());
-                                }
-
-                                add_file_stream(file_name, severity);
-                            }
-                        }
-                        break;
                     }
+                    break;
                 }
-                catch (...)
-                {
-                    continue;
-                }
+            }
+            catch (const std::exception& e)
+            {
+                std::cerr << e.what() << std::endl;
+                continue;
             }
         }
     }

@@ -4,23 +4,21 @@
 		"format": "%m",
 		"log_types":
 		{
-			[
-				"files":
+			"files":
+			{
+				"file_1.txt":
 				{
-					"file_1":
-					{
-						"severity": ["error"]
-					},
-					"file_2":
-					{
-						"severity": ["debug"]
-					},
+					"severity": ["error"]
 				},
-				"console":
+				"file_2.txt":
 				{
-					"severity": ["critical"]
+					"severity": ["debug"]
 				}
-			]
+			},
+			"console":
+			{
+				"severity": ["critical"]
+			}
 		}
 	}
 }
