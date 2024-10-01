@@ -1,0 +1,2 @@
+#pragma code_page(65001)
+1 /* CREATEPROCESS_MANIFEST_RESOURCE_ID */ 24 /* RT_MANIFEST */ "D:/_Platon/_Files/GitHub/mp_os_3sem/out/build/x64-Debug/arithmetic/big_integer/tests/Schonhage_Strassen_multiplication/CMakeFiles/mp_os_arthmtc_bg_intgr_tests_Schonhage_Strassen_mltplctn.dir/embed.manifest"

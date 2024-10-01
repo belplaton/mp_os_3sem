@@ -5,6 +5,7 @@
 #include <logger.h>
 #include <logger_guardant.h>
 #include <typename_holder.h>
+#include <map>
 
 class allocator_global_heap final:
     public allocator,
@@ -14,11 +15,15 @@ class allocator_global_heap final:
 
 private:
     
+    static std::map<int, allocator_global_heap*> _allocators_map;
+    static int _allocators_created;
+
+    int _id;
     logger *_logger;
 
     struct allocation_header
     {
-        allocator_global_heap *allocator_ptr;
+        int allocator_id;
         size_t data_size;
     };
 

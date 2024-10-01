@@ -3,16 +3,23 @@
 #include "../include/allocator_global_heap.h"
 #include <sstream>
 
+std::map<int, allocator_global_heap*> allocator_global_heap::_allocators_map{};
+int allocator_global_heap::_allocators_created{0};
+
 allocator_global_heap::allocator_global_heap(
     logger *logger):
-    _logger(logger)
+    _logger(logger),
+    _id(allocator_global_heap::_allocators_created)
 {
     std::ostringstream oss;
-    oss << "Constructor called for object of type: " << get_typename();
+    oss << "Constructor called for object of type: " << get_typename() << '\n';
     log_with_guard(oss.str(), logger::severity::trace);
 
-    oss.clear();
-    oss << "Constructor finished for object of type: " << get_typename();
+    allocator_global_heap::_allocators_created++;
+    allocator_global_heap::_allocators_map.emplace(_id, this);
+
+    oss.str("");
+    oss << "Constructor finished for object of type: " << get_typename() << '\n';
     log_with_guard(oss.str(), logger::severity::trace);
     //throw not_implemented("allocator_global_heap::allocator_global_heap(logger *)", "your code should be here...");
 }
@@ -20,29 +27,33 @@ allocator_global_heap::allocator_global_heap(
 allocator_global_heap::~allocator_global_heap()
 {
     std::ostringstream oss;
-    oss << "Destructor called for object of type: " << get_typename();
+    oss << "Destructor called for object of type: " << get_typename() << '\n';
     log_with_guard(oss.str(), logger::severity::trace);
 
     _logger == nullptr;
+    allocator_global_heap::_allocators_map.erase(_id);
 
-    oss.clear();
-    oss << "Destructor finished for object of type: " << get_typename();
+    oss.str("");
+    oss << "Destructor finished for object of type: " << get_typename() << '\n';
     log_with_guard(oss.str(), logger::severity::trace);
     //throw not_implemented("allocator_global_heap::~allocator_global_heap()", "your code should be here...");
 }
 
 allocator_global_heap::allocator_global_heap(
     allocator_global_heap &&other) noexcept:
-    _logger(std::move(other._logger))
+    _logger(std::move(other._logger)),
+    _id(std::move(other._id))
 {
     std::ostringstream oss;
-    oss << "Move-destructor called for object of type: " << get_typename();
+    oss << "Move-destructor called for object of type: " << get_typename() << '\n';
     log_with_guard(oss.str(), logger::severity::trace);
 
     other._logger = nullptr;
+    allocator_global_heap::_allocators_map.erase(_id);
+    allocator_global_heap::_allocators_map.emplace(_id, this);
 
-    oss.clear();
-    oss << "Move-destructor finished for object of type: " << get_typename();
+    oss.str("");
+    oss << "Move-destructor finished for object of type: " << get_typename() << '\n';
     log_with_guard(oss.str(), logger::severity::trace);
     //throw not_implemented("allocator_global_heap::allocator_global_heap(allocator_global_heap &&) noexcept", "your code should be here...");
 }
@@ -51,18 +62,20 @@ allocator_global_heap &allocator_global_heap::operator=(
     allocator_global_heap &&other) noexcept
 {
     std::ostringstream oss;
-    oss << "Move-operator '=' called for object of type: " << get_typename();
+    oss << "Move-operator '=' called for object of type: " << get_typename() << '\n';
     log_with_guard(oss.str(), logger::severity::trace);
 
     if (this != &other)
     {
         _logger = std::move(other._logger);
+        _id = std::move(other._id);
         other._logger == nullptr;
+        other._id = 0;
     }
 
 
-    oss.clear();
-    oss << "Move-operator '=' finished for object of type: " << get_typename();
+    oss.str("");
+    oss << "Move-operator '=' finished for object of type: " << get_typename() << '\n';
     log_with_guard(oss.str(), logger::severity::trace);
 
     return *this;
@@ -74,13 +87,13 @@ allocator_global_heap &allocator_global_heap::operator=(
     size_t values_count)
 {
     std::ostringstream oss;
-    oss << "Allocate memory method init in " << get_typename() << " for " << values_count << " elements with " << value_size << " bytes size.";
+    oss << "Allocate memory method init in " << get_typename() << " for " << values_count << " elements with " << value_size << " bytes size" << '\n';
     log_with_guard(oss.str(), logger::severity::debug);
 
     if (values_count <= 0)
     {
-        oss.clear();
-        oss << "Allocate request redifined from " << values_count << " elements to 1 element in " << get_typename() << ".";
+        oss.str("");
+        oss << "Allocate request redifined from " << values_count << " elements to 1 element in " << get_typename() << '\n';
         log_with_guard(oss.str(), logger::severity::warning);
 
         values_count = 1;
@@ -94,18 +107,18 @@ allocator_global_heap &allocator_global_heap::operator=(
         size_t total_size = sizeof(allocation_header) + value_size * values_count;
         allocated = ::operator new(total_size);
         allocation_header* header = static_cast<allocation_header*>(allocated);
-        header->allocator_ptr = this;
+        header->allocator_id = _id;
         header->data_size = value_size * values_count;
         used_memory = reinterpret_cast<void*>(header + 1);
 
-        oss.clear();
-        oss << "Successfully allocated memory for " << values_count << " elements with " << value_size << " bytes size in " << get_typename() << ".";
+        oss.str("");
+        oss << "Successfully allocated memory for " << values_count << " elements with " << value_size << " bytes size in " << get_typename() << '\n';
         log_with_guard(oss.str(), logger::severity::information);
     }
     catch (std::bad_alloc const &error)
     {
-        oss.clear();
-        oss << "Can`t allocate memory in " << get_typename() << " for " << values_count << " elements with " << value_size << " bytes size.";
+        oss.str("");
+        oss << "Can`t allocate memory in " << get_typename() << " for " << values_count << " elements with " << value_size << " bytes size" << '\n';
         log_with_guard(oss.str(), logger::severity::warning);
     }
     catch (std::exception const& error)
@@ -115,8 +128,8 @@ allocator_global_heap &allocator_global_heap::operator=(
         throw error;
     }
 
-    oss.clear();
-    oss << "Allocate memory method finish in " << get_typename() << " for " << values_count << " elements with " << value_size << " bytes size.";
+    oss.str("");
+    oss << "Allocate memory method finish in " << get_typename() << " for " << values_count << " elements with " << value_size << " bytes size" << '\n';
     log_with_guard(oss.str(), logger::severity::debug);
 
     return used_memory;
@@ -127,45 +140,50 @@ void allocator_global_heap::deallocate(
     void *at)
 {
     std::ostringstream oss;
-    oss << "Dellocate memory method init in " << get_typename() << " at " << at << ".";
+    oss << "Deallocate memory method init in " << get_typename() << " at " << at << '\n';
     log_with_guard(oss.str(), logger::severity::debug);
 
     if (!at)
     {
-        oss.clear();
-        oss << "Attempting to free a null pointer in " << get_typename() << ".";
+        oss.str("");
+        oss << "Attempting to free a null pointer in " << get_typename() << '\n';
         log_with_guard(oss.str(), logger::severity::warning);
 
-        oss.clear();
-        oss << "Dellocate memory method finish in " << get_typename() << " at " << at << ".";
+        oss.str("");
+        oss << "Deallocate memory method finish in " << get_typename() << " at " << at << '\n';
         log_with_guard(oss.str(), logger::severity::debug);
         return;
     }
 
     auto header = reinterpret_cast<allocation_header*>(at) - 1;
-    if (header->allocator_ptr != this)
+    auto allocator_temp_iter = allocator_global_heap::_allocators_map.find(header->allocator_id);
+    if (allocator_temp_iter != allocator_global_heap::_allocators_map.end())
     {
-        oss.clear();
-        oss << "Attempting to free a memory not belonging to this allocator in " << get_typename() << ".";
+        if (allocator_temp_iter->second != this)
+        {
+            oss.str("");
+            oss << "Attempting to free a memory not belonging to this allocator in " << get_typename() << '\n';
+            log_with_guard(oss.str(), logger::severity::error);
+
+            throw std::logic_error(oss.str());
+        }
+    }
+    else
+    {
+        oss.str("");
+        oss << "Can`t found allocator with " << header->allocator_id << " in " << get_typename() << " static std::map<int, allocator_global_heap*> _allocators_map " << '\n';
         log_with_guard(oss.str(), logger::severity::error);
 
         throw std::logic_error(oss.str());
     }
 
-    oss.clear();
-    oss << "Memory block state before cleaning: ";
-
-    unsigned char* data = static_cast<unsigned char*>(at);
-    for (auto i = 0; i < header->data_size; i++)
-    {
-        oss << std::hex << static_cast<unsigned char>(data[i]) << " ";
-    }
-
+    oss.str("");
+    oss << "Memory block state before cleaning: " << at << '\n';
     log_with_guard(oss.str(), logger::severity::debug);
     ::operator delete(header);
 
-    oss.clear();
-    oss << "Dellocate memory method finish in " << get_typename() << " at " << at << ".";
+    oss.str("");
+    oss << "Deallocate memory method finish in " << get_typename() << " at " << at << '\n';
     log_with_guard(oss.str(), logger::severity::debug);
     //throw not_implemented("void allocator_global_heap::deallocate(void *)", "your code should be here...");
 }
