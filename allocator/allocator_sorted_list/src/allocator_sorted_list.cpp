@@ -169,6 +169,9 @@ allocator_sorted_list::allocator_sorted_list(
     result->base_info.block_size = total_size;
     prev->assotiated_ptr = result;
 
+    // “ут неверно, должно быть так:
+    // создаетс€ «јЌя“џ… блок, а после него следующий свободный
+
     return result;
 }
 
@@ -181,7 +184,7 @@ allocator_sorted_list::allocator_sorted_list(
         {
             while (memory->assotiated_ptr != nullptr)
             {
-                auto temp = *(reinterpret_cast<allocator_sorted_list::meta_block_info**>(memory->assotiated_ptr));
+                auto temp = reinterpret_cast<allocator_sorted_list::meta_block_info*>(memory->assotiated_ptr);
                 if (memory->base_info.block_size < size)
                 {
                     memory = temp;
@@ -206,18 +209,95 @@ allocator_sorted_list::allocator_sorted_list(
 
 [[nodiscard]] allocator_sorted_list::meta_block_info* allocator_sorted_list::allocate_best_fit(size_t size)
 {
+    try
+    {
+        auto memory = get_first_free_block();
+        if (memory != nullptr)
+        {
+            auto best = memory;
+            while (memory->assotiated_ptr != nullptr)
+            {
+                auto temp = reinterpret_cast<allocator_sorted_list::meta_block_info*>(memory->assotiated_ptr);
+                if (memory->base_info.block_size < size)
+                {
+                    memory = temp;
+                    continue;
+                }
 
+                if (best->base_info.block_size - size > temp->base_info.block_size - size)
+                {
+                    best = temp;
+                }
+            }
+
+            auto temp = reinterpret_cast<allocator_sorted_list::meta_block_info*>(best->assotiated_ptr);
+            return allocate_block(best, temp, size);
+        }
+    }
+    catch (const std::bad_alloc& error)
+    {
+        std::ostringstream oss;
+        oss << "Can`t found free space to allocate " << size << " bytes" << '\n';
+        throw std::runtime_error(oss.str());
+    }
+    catch (const std::exception& error)
+    {
+        throw std::runtime_error(error.what());
+    }
 }
 
 [[nodiscard]] allocator_sorted_list::meta_block_info* allocator_sorted_list::allocate_worst_fit(size_t size)
 {
+    try
+    {
+        auto memory = get_first_free_block();
+        if (memory != nullptr)
+        {
+            auto worst = memory;
+            while (memory->assotiated_ptr != nullptr)
+            {
+                auto temp = reinterpret_cast<allocator_sorted_list::meta_block_info*>(memory->assotiated_ptr);
+                if (memory->base_info.block_size < size)
+                {
+                    memory = temp;
+                    continue;
+                }
 
+                if (worst->base_info.block_size - size < temp->base_info.block_size - size)
+                {
+                    worst = temp;
+                }
+            }
+
+            auto temp = reinterpret_cast<allocator_sorted_list::meta_block_info*>(worst->assotiated_ptr);
+            return allocate_block(worst, temp, size);
+        }
+    }
+    catch (const std::bad_alloc& error)
+    {
+        std::ostringstream oss;
+        oss << "Can`t found free space to allocate " << size << " bytes" << '\n';
+        throw std::runtime_error(oss.str());
+    }
+    catch (const std::exception& error)
+    {
+        throw std::runtime_error(error.what());
+    }
 }
 
 void allocator_sorted_list::deallocate(
     void* at)
 {
-    throw not_implemented("void allocator_sorted_list::deallocate(void *)", "your code should be here...\n");
+    auto current = get_first_free_block();
+    auto at_char = reinterpret_cast<unsigned char*>(at);
+    if
+
+    while (reinterpret_cast<unsigned char*>(current) < at_char)
+    {
+        current = reinterpret_cast<allocator_sorted_list::meta_block_info*>(current->assotiated_ptr);
+    }
+
+    //throw not_implemented("void allocator_sorted_list::deallocate(void *)", "your code should be here...\n");
 }
 
 void allocator_sorted_list::free_memory()
