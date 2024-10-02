@@ -20,6 +20,8 @@ public:
     
     inline virtual void set_fit_mode(
         fit_mode mode) = 0;
+
+    inline virtual fit_mode get_fit_mode() const = 0;
     
 };
 
