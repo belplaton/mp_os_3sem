@@ -17,16 +17,27 @@ class allocator_sorted_list final:
 {
 
 private:
+
+    static constexpr size_t ALLOCATOR_META_SIZE = 
+        (sizeof(size_t) + 
+        sizeof(allocator*) +
+        sizeof(logger*) +
+        sizeof(std::mutex) +
+        sizeof(allocator_with_fit_mode::fit_mode) +
+        sizeof(void*));
+
+    static constexpr size_t SPACE_SIZE_BYTES_SHIFT = 0;
+    static constexpr size_t ALLOCATOR_BYTES_SHIFT = (SPACE_SIZE_BYTES_SHIFT + sizeof(size_t));
+    static constexpr size_t LOGGER_BYTES_SHIFT = (ALLOCATOR_BYTES_SHIFT + sizeof(allocator*));
+    static constexpr size_t MUTEX_BYTES_SHIFT = (LOGGER_BYTES_SHIFT + sizeof(logger*));
+    static constexpr size_t FITMODE_BYTES_SHIFT = (MUTEX_BYTES_SHIFT + sizeof(std::mutex));
+    static constexpr size_t FIRST_FREE_BLOCK_BYTES_SHIFT = (FITMODE_BYTES_SHIFT + sizeof(allocator_with_fit_mode::fit_mode));
     
+    static constexpr size_t BLOCK_META_SIZE = (sizeof(size_t) + sizeof(void*));
+    static constexpr size_t BLOCK_SIZE_BYTES_SHIFT = 0;
+    static constexpr size_t BLOCK_PTR_BYTES_SHIFT = (BLOCK_SIZE_BYTES_SHIFT + sizeof(size_t));
+
     void *_trusted_memory;
-
-public:
-
-    struct meta_block_info
-    {
-        void* assotiated_ptr;
-        block_info base_info;
-    };
 
 public:
     
@@ -60,13 +71,26 @@ public:
 
 private:
 
-    [[nodiscard]] meta_block_info* allocate_block(meta_block_info* prev, meta_block_info* next, size_t size);
 
-    [[nodiscard]] meta_block_info* allocate_first_fit(size_t size);
+    unsigned char* block_construct(unsigned char*, unsigned char*, size_t);
 
-    [[nodiscard]] meta_block_info* allocate_best_fit(size_t size);
+    void block_set_associated_ptr(unsigned char*, unsigned char*);
 
-    [[nodiscard]] meta_block_info* allocate_worst_fit(size_t size);
+    void block_set_size(unsigned char*, size_t);
+
+    unsigned char* block_get_associated_ptr(unsigned char*) const;
+
+    unsigned char* block_get_next_block(unsigned char*) const;
+
+    size_t block_get_size(unsigned char*) const;
+
+    [[nodiscard]] unsigned char* allocate_block(unsigned char* prev, unsigned char* next, size_t size);
+
+    [[nodiscard]] unsigned char* allocate_first_fit(size_t size);
+
+    [[nodiscard]] unsigned char* allocate_best_fit(size_t size);
+
+    [[nodiscard]] unsigned char* allocate_worst_fit(size_t size);
 
 public:
 
@@ -109,13 +133,13 @@ private:
 
     inline std::mutex* get_mutex() const;
 
-    inline void set_mutex(std::mutex*);
+    inline void init_mutex();
 
 private:
 
-    inline meta_block_info* get_first_free_block() const;
+    inline void* get_first_free_block() const;
 
-    inline void set_first_free_block(meta_block_info*);
+    inline void set_first_free_block(void*);
 
 private:
     

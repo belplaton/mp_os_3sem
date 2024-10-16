@@ -3,24 +3,18 @@
 #include "../include/allocator_sorted_list.h"
 #include <sstream>
 
-constexpr size_t ALLOCATOR_META_SIZE            = (sizeof(allocator*) + 
-                                                sizeof(size_t) + 
-                                                sizeof(logger*) + 
-                                                sizeof(std::mutex*) + 
-                                                sizeof(allocator_with_fit_mode::fit_mode) + 
-                                                sizeof(allocator_sorted_list::meta_block_info*));
-
-constexpr size_t SPACE_SIZE_BYTES_SHIFT         = (sizeof(size_t));
-constexpr size_t ALLOCATOR_BYTES_SHIFT          = (SPACE_SIZE_BYTES_SHIFT + sizeof(allocator*));
-constexpr size_t LOGGER_BYTES_SHIFT             = (ALLOCATOR_BYTES_SHIFT + sizeof(logger*));
-constexpr size_t MUTEX_BYTES_SHIFT              = (LOGGER_BYTES_SHIFT + sizeof(std::mutex*));
-constexpr size_t FITMODE_BYTES_SHIFT            = (MUTEX_BYTES_SHIFT + sizeof(allocator_with_fit_mode::fit_mode));
-constexpr size_t FIRST_FREE_BLOCK_BYTES_SHIFT   = (FITMODE_BYTES_SHIFT + sizeof(allocator_sorted_list::meta_block_info*));
-
 #pragma region Constructors, Operators
 
 allocator_sorted_list::~allocator_sorted_list()
 {
+    std::ostringstream oss;
+    oss << "Destructor called for object of type: " << get_typename() << '\n';
+    log_with_guard(oss.str(), logger::severity::trace);
+
+    oss.str("");
+    oss << "Destructor finished for object of type: " << get_typename() << '\n';
+    log_with_guard(oss.str(), logger::severity::trace);
+
     free_memory();
     //throw not_implemented("allocator_sorted_list::~allocator_sorted_list()", "your code should be here...");
 }
@@ -28,15 +22,27 @@ allocator_sorted_list::~allocator_sorted_list()
 allocator_sorted_list::allocator_sorted_list(
     allocator_sorted_list const& other)
 {
+    std::ostringstream oss;
+    oss << "Constructor of copy called for object of type: " << get_typename() << '\n';
+    log_with_guard(oss.str(), logger::severity::trace);
+
     auto space_size = other.get_space_size();
     auto full_size = space_size + ALLOCATOR_META_SIZE;
     _trusted_memory = allocate_with_guard(full_size);
+
+    oss.str("");
+    oss << "Constructor of copy finished for object of type: " << get_typename() << '\n';
+    log_with_guard(oss.str(), logger::severity::trace);
     //throw not_implemented("allocator_sorted_list::allocator_sorted_list(allocator_sorted_list const &)", "your code should be here...");
 }
 
 allocator_sorted_list& allocator_sorted_list::operator=(
     allocator_sorted_list const& other)
 {
+    std::ostringstream oss;
+    oss << "Copy-operator '=' called for object of type: " << get_typename() << '\n';
+    log_with_guard(oss.str(), logger::severity::trace);
+
     if (this != &other)
     {
         free_memory();
@@ -44,6 +50,10 @@ allocator_sorted_list& allocator_sorted_list::operator=(
         auto full_size = space_size + ALLOCATOR_META_SIZE;
         _trusted_memory = allocate_with_guard(full_size);
     }
+
+    oss.str("");
+    oss << "Copy-operator '=' finished for object of type: " << get_typename() << '\n';
+    log_with_guard(oss.str(), logger::severity::trace);
 
     return *this;
     //throw not_implemented("allocator_sorted_list &allocator_sorted_list::operator=(allocator_sorted_list const &)", "your code should be here...");
@@ -53,12 +63,23 @@ allocator_sorted_list::allocator_sorted_list(
     allocator_sorted_list&& other) noexcept :
     _trusted_memory(other._trusted_memory)
 {
+    std::ostringstream oss;
+    oss << "Move-constructor called for object of type: " << get_typename() << '\n';
+    log_with_guard(oss.str(), logger::severity::trace);
+
+    oss.str("");
+    oss << "Move-constructor finished for object of type: " << get_typename() << '\n';
+    log_with_guard(oss.str(), logger::severity::trace);
     //throw not_implemented("allocator_sorted_list::allocator_sorted_list(allocator_sorted_list &&) noexcept", "your code should be here...");
 }
 
 allocator_sorted_list& allocator_sorted_list::operator=(
     allocator_sorted_list&& other) noexcept
 {
+    std::ostringstream oss;
+    oss << "Move-operator '=' called for object of type: " << get_typename() << '\n';
+    log_with_guard(oss.str(), logger::severity::trace);
+
     if (this != &other)
     {
         free_memory();
@@ -66,15 +87,13 @@ allocator_sorted_list& allocator_sorted_list::operator=(
         other._trusted_memory = nullptr;
     }
 
+    oss.str("");
+    oss << "Move-operator '=' finished for object of type: " << get_typename() << '\n';
+    log_with_guard(oss.str(), logger::severity::trace);
+
     return *this;
     //throw not_implemented("allocator_sorted_list &allocator_sorted_list::operator=(allocator_sorted_list &&) noexcept", "your code should be here...");
 }
-
-
-#pragma endregion
-
-#pragma region Memory operating
-
 
 allocator_sorted_list::allocator_sorted_list(
     size_t space_size,
@@ -83,13 +102,28 @@ allocator_sorted_list::allocator_sorted_list(
     allocator_with_fit_mode::fit_mode allocate_fit_mode) :
     _trusted_memory(nullptr)
 {
+    std::ostringstream oss;
+    oss << "Constructor called for object of type: " << get_typename() << '\n';
+    if (logger != nullptr)
+        logger->log(oss.str(), logger::severity::trace);
+
     try
     {
         auto full_size = space_size + ALLOCATOR_META_SIZE;
-        _trusted_memory = allocate_with_guard(full_size);
+        _trusted_memory = parent_allocator == nullptr
+            ? ::operator new(space_size)
+            : parent_allocator->allocate(space_size, 1);
     }
     catch (const std::exception& error)
     {
+        parent_allocator == nullptr
+            ? ::operator delete(_trusted_memory)
+            : parent_allocator->deallocate(_trusted_memory);
+
+        oss.str("");
+        oss << "Constructor finished for object of type: " << get_typename() << '\n';
+        if (logger != nullptr)
+            logger->log(oss.str(), logger::severity::trace);
         throw error;
     }
 
@@ -97,22 +131,48 @@ allocator_sorted_list::allocator_sorted_list(
     set_allocator(parent_allocator);
     set_logger(logger);
     set_fit_mode(allocate_fit_mode);
-    set_mutex(new std::mutex());
+    init_mutex();
 
     auto first_block_char = reinterpret_cast<unsigned char*>(_trusted_memory) + ALLOCATOR_META_SIZE;
-    auto free_block = reinterpret_cast<meta_block_info*>(first_block_char);
-    free_block->assotiated_ptr = nullptr;
-    free_block->base_info.block_size = space_size;
-    free_block->base_info.is_block_occupied = false;
-
+    auto free_block = block_construct(first_block_char, nullptr, space_size);
     set_first_free_block(free_block);
+
+    oss.str("");
+    oss << "Constructor finished for object of type: " << get_typename() << '\n';
+    if (logger != nullptr)
+        logger->log(oss.str(), logger::severity::trace);
     //throw not_implemented("allocator_sorted_list::allocator_sorted_list(size_t, allocator *, logger *, allocator_with_fit_mode::fit_mode)", "your code should be here...");
 }
+
+#pragma endregion
+
+#pragma region Memory operating
 
 [[nodiscard]] void* allocator_sorted_list::allocate(
     size_t value_size,
     size_t values_count)
 {
+    std::ostringstream oss;
+    oss << "Allocate memory method init in " << get_typename() << " for " << values_count << " elements with " << value_size << " bytes size" << '\n';
+    log_with_guard(oss.str(), logger::severity::debug);
+
+    if (values_count <= 0)
+    {
+        oss.str("");
+        oss << "Allocate request redifined from " << values_count << " elements to 1 element in " << get_typename() << '\n';
+        log_with_guard(oss.str(), logger::severity::warning);
+
+        values_count = 1;
+    }
+
+    if (value_size * values_count > get_space_size())
+    {
+        oss.str("");
+        oss << "Can`t allocate " << value_size * values_count << " bytes, because allocator limit is " << get_space_size() << " bytes." << '\n';
+        log_with_guard(oss.str(), logger::severity::error);
+        throw std::runtime_error(oss.str());
+    }
+
     auto memory = reinterpret_cast<unsigned char*>(_trusted_memory);
     auto mutex = get_mutex();
     auto fit_mode = get_fit_mode();
@@ -133,11 +193,15 @@ allocator_sorted_list::allocator_sorted_list(
             result = allocate_worst_fit(block_size);
             break;
         default:
-            std::ostringstream oss;
+            oss.str("");
             oss << "Can`t found allocate method for " << static_cast<int>(fit_mode) << " fit mode" << '\n';
             log_with_guard(oss.str(), logger::severity::error);
             throw std::runtime_error(oss.str());
         }
+
+        oss.str("");
+        oss << "Successfully allocated memory for " << values_count << " elements with " << value_size << " bytes size in " << get_typename() << '\n';
+        log_with_guard(oss.str(), logger::severity::information);
     }
     catch (const std::exception& error)
     {
@@ -147,140 +211,276 @@ allocator_sorted_list::allocator_sorted_list(
     }
 
     mutex->unlock();
+    oss.str("");
+    oss << "Allocate memory method finish in " << get_typename() << " for " << values_count << " elements with " << value_size << " bytes size" << '\n';
+    log_with_guard(oss.str(), logger::severity::debug);
+
     return result;
     //throw not_implemented("[[nodiscard]] void *allocator_sorted_list::allocate(size_t, size_t)", "your code should be here...");
 }
 
-[[nodiscard]] allocator_sorted_list::meta_block_info* allocator_sorted_list::allocate_block(meta_block_info* prev, meta_block_info* next, size_t size)
+unsigned char* allocator_sorted_list::block_construct(unsigned char* block_memory, unsigned char* associated_ptr, size_t block_size)
 {
-    if (prev == nullptr)
+    auto associated_ptr_memory = block_memory + allocator_sorted_list::BLOCK_PTR_BYTES_SHIFT;
+    *(reinterpret_cast<unsigned char**>(associated_ptr_memory)) = associated_ptr;
+
+    auto block_size_memory = reinterpret_cast<unsigned char*>(block_memory) + BLOCK_SIZE_BYTES_SHIFT;
+    *(reinterpret_cast<size_t*>(block_size_memory)) = block_size;
+
+    return block_memory;
+}
+
+unsigned char* allocator_sorted_list::block_get_associated_ptr(unsigned char* block_memory) const
+{
+    auto memory = block_memory + BLOCK_PTR_BYTES_SHIFT;
+    auto associated_ptr = *(reinterpret_cast<unsigned char**>(memory));
+    return associated_ptr;
+}
+
+unsigned char* allocator_sorted_list::block_get_next_block(unsigned char* block_memory) const
+{
+    auto trusted_memory_char = reinterpret_cast<unsigned char*>(_trusted_memory);
+    auto trusted_memory_char_end = trusted_memory_char + ALLOCATOR_META_SIZE + get_space_size();
+    auto memory = block_memory + BLOCK_META_SIZE + block_get_size(block_memory);
+    if (memory >= trusted_memory_char_end)
+    {
+        memory = nullptr;
+    }
+
+    return memory;
+}
+
+size_t allocator_sorted_list::block_get_size(unsigned char* block_memory) const
+{
+    auto memory = block_memory + BLOCK_SIZE_BYTES_SHIFT;
+    auto block_size = *(reinterpret_cast<size_t*>(memory));
+    return block_size;
+}
+
+void allocator_sorted_list::block_set_associated_ptr(unsigned char* block_memory, unsigned char* associated_ptr)
+{
+    auto memory = block_memory + BLOCK_PTR_BYTES_SHIFT;
+    *(reinterpret_cast<unsigned char**>(memory)) = associated_ptr;
+}
+
+void allocator_sorted_list::block_set_size(unsigned char* block_memory, size_t block_size)
+{
+    auto memory = block_memory;// +BLOCK_SIZE_BYTES_SHIFT;
+    *(reinterpret_cast<size_t*>(memory)) = block_size;
+}
+
+[[nodiscard]] unsigned char* allocator_sorted_list::allocate_block(unsigned char* prev, unsigned char* current, size_t size)
+{
+    if (current == nullptr)
     {
         throw std::runtime_error("Can`t allocate memory in null block pointer");
     }
 
     auto total_size = size;
-    if (prev->base_info.block_size - size > sizeof(allocator_sorted_list::meta_block_info))
+    auto next = block_get_associated_ptr(current);
+    if (block_get_size(current) - size > BLOCK_META_SIZE)
     {
-        total_size = prev->base_info.block_size;
+        total_size = block_get_size(current);
+    }
+    else
+    {
+        next = block_construct(current + BLOCK_META_SIZE + total_size, next, total_size - size);
     }
 
-    auto result = prev + 1;
-    result->assotiated_ptr = next;
-    result->base_info.block_size = total_size;
-    prev->assotiated_ptr = result;
+    auto trusted_memory_char = reinterpret_cast<unsigned char*>(_trusted_memory);
+    block_construct(current, trusted_memory_char, total_size);
+    if (prev != nullptr)
+    {
+        block_set_associated_ptr(prev, next);
+    }
+    else
+    {
+        auto current_void = reinterpret_cast<void*>(current);
+        set_first_free_block(current_void);
+    }
 
-    // “ут неверно, должно быть так:
-    // создаетс€ «јЌя“џ… блок, а после него следующий свободный
-
-    return result;
+    return current;
 }
 
-[[nodiscard]] allocator_sorted_list::meta_block_info* allocator_sorted_list::allocate_first_fit(size_t size)
+[[nodiscard]] unsigned char* allocator_sorted_list::allocate_first_fit(size_t size)
 {
+    std::ostringstream oss;
+    oss << "Allocate with first fit init in " << get_typename() << " for " << size << " bytes size" << '\n';
+    log_with_guard(oss.str(), logger::severity::debug);
+
     try
     {
-        auto memory = get_first_free_block();
+        auto first_free_block = get_first_free_block();
+        auto memory = reinterpret_cast<unsigned char*>(first_free_block);
         if (memory != nullptr)
         {
-            while (memory->assotiated_ptr != nullptr)
+            unsigned char* prev = nullptr;
+            do
             {
-                auto temp = reinterpret_cast<allocator_sorted_list::meta_block_info*>(memory->assotiated_ptr);
-                if (memory->base_info.block_size < size)
+                if (block_get_size(memory) < size)
                 {
-                    memory = temp;
+                    prev = memory;
+                    memory = block_get_associated_ptr(memory);
                     continue;
                 }
 
-                return allocate_block(memory, temp, size);
-            }
+                oss.str("");
+                oss << "Allocate with first fit finish in " << get_typename() << " for " << size << " bytes size" << '\n';
+                log_with_guard(oss.str(), logger::severity::debug);
+
+                return allocate_block(prev, memory, size);
+            } while (memory != nullptr);
         }
+
+        oss.str("");
+        oss << "Allocate with first fit finish in " << get_typename() << " for " << size << " bytes size" << '\n';
+        log_with_guard(oss.str(), logger::severity::debug);
+
+        throw std::bad_alloc();
     }
     catch (const std::bad_alloc& error)
     {
-        std::ostringstream oss;
+        oss.str("");
+        oss << "Allocate with first fit finish in " << get_typename() << " for " << size << " bytes size" << '\n';
+        log_with_guard(oss.str(), logger::severity::debug);
+
+        oss.str("");
         oss << "Can`t found free space to allocate " << size << " bytes" << '\n';
         throw std::runtime_error(oss.str());
     }
     catch (const std::exception& error)
     {
+        oss.str("");
+        oss << "Allocate with first fit finish in " << get_typename() << " for " << size << " bytes size" << '\n';
+        log_with_guard(oss.str(), logger::severity::debug);
         throw std::runtime_error(error.what());
     }
 }
 
-[[nodiscard]] allocator_sorted_list::meta_block_info* allocator_sorted_list::allocate_best_fit(size_t size)
+[[nodiscard]] unsigned char* allocator_sorted_list::allocate_best_fit(size_t size)
 {
+    std::ostringstream oss;
+    oss << "Allocate with best fit init in " << get_typename() << " for " << size << " bytes size" << '\n';
+    log_with_guard(oss.str(), logger::severity::debug);
+
     try
     {
-        auto memory = get_first_free_block();
+        auto first_free_block = get_first_free_block();
+        auto memory = reinterpret_cast<unsigned char*>(first_free_block);
         if (memory != nullptr)
         {
             auto best = memory;
-            while (memory->assotiated_ptr != nullptr)
+            do
             {
-                auto temp = reinterpret_cast<allocator_sorted_list::meta_block_info*>(memory->assotiated_ptr);
-                if (memory->base_info.block_size < size)
+                auto temp = block_get_associated_ptr(memory);
+                if (block_get_size(memory) < size)
                 {
                     memory = temp;
                     continue;
                 }
 
-                if (best->base_info.block_size - size > temp->base_info.block_size - size)
+                if (temp != nullptr)
                 {
-                    best = temp;
+                    if (block_get_size(best) - size > block_get_size(temp) - size)
+                    {
+                        best = temp;
+                    }
                 }
-            }
+            } while (memory != nullptr);
 
-            auto temp = reinterpret_cast<allocator_sorted_list::meta_block_info*>(best->assotiated_ptr);
+            auto temp = block_get_associated_ptr(best);
+            oss.str("");
+            oss << "Allocate with best fit finish in " << get_typename() << " for " << size << " bytes size" << '\n';
+            log_with_guard(oss.str(), logger::severity::debug);
+
             return allocate_block(best, temp, size);
         }
+
+        oss.str("");
+        oss << "Allocate with best fit finish in " << get_typename() << " for " << size << " bytes size" << '\n';
+        log_with_guard(oss.str(), logger::severity::debug);
+
+        throw std::bad_alloc();
     }
     catch (const std::bad_alloc& error)
     {
-        std::ostringstream oss;
+        oss.str("");
+        oss << "Allocate with first fit finish in " << get_typename() << " for " << size << " bytes size" << '\n';
+        log_with_guard(oss.str(), logger::severity::debug);
+
+        oss.str("");
         oss << "Can`t found free space to allocate " << size << " bytes" << '\n';
         throw std::runtime_error(oss.str());
     }
     catch (const std::exception& error)
     {
+        oss.str("");
+        oss << "Allocate with first fit finish in " << get_typename() << " for " << size << " bytes size" << '\n';
+        log_with_guard(oss.str(), logger::severity::debug);
         throw std::runtime_error(error.what());
     }
 }
 
-[[nodiscard]] allocator_sorted_list::meta_block_info* allocator_sorted_list::allocate_worst_fit(size_t size)
+[[nodiscard]] unsigned char* allocator_sorted_list::allocate_worst_fit(size_t size)
 {
+    std::ostringstream oss;
+    oss << "Allocate with worst fit init in " << get_typename() << " for " << size << " bytes size" << '\n';
+    log_with_guard(oss.str(), logger::severity::debug);
+
     try
     {
-        auto memory = get_first_free_block();
+        auto first_free_block = get_first_free_block();
+        auto memory = reinterpret_cast<unsigned char*>(first_free_block);
         if (memory != nullptr)
         {
             auto worst = memory;
-            while (memory->assotiated_ptr != nullptr)
+            do
             {
-                auto temp = reinterpret_cast<allocator_sorted_list::meta_block_info*>(memory->assotiated_ptr);
-                if (memory->base_info.block_size < size)
+                auto temp = block_get_associated_ptr(memory);
+                if (block_get_size(memory) < size)
                 {
                     memory = temp;
                     continue;
                 }
 
-                if (worst->base_info.block_size - size < temp->base_info.block_size - size)
+                if (temp != nullptr)
                 {
-                    worst = temp;
+                    if (block_get_size(worst) - size < block_get_size(temp) - size)
+                    {
+                        worst = temp;
+                    }
                 }
-            }
+            } while (memory != nullptr);
 
-            auto temp = reinterpret_cast<allocator_sorted_list::meta_block_info*>(worst->assotiated_ptr);
+            auto temp = block_get_associated_ptr(worst);
+            oss.str("");
+            oss << "Allocate with worst fit finish in " << get_typename() << " for " << size << " bytes size" << '\n';
+            log_with_guard(oss.str(), logger::severity::debug);
+
             return allocate_block(worst, temp, size);
         }
+
+        oss.str("");
+        oss << "Allocate with worst fit finish in " << get_typename() << " for " << size << " bytes size" << '\n';
+        log_with_guard(oss.str(), logger::severity::debug);
+
+        throw std::bad_alloc();
     }
     catch (const std::bad_alloc& error)
     {
-        std::ostringstream oss;
+        oss.str("");
+        oss << "Allocate with worst fit finish in " << get_typename() << " for " << size << " bytes size" << '\n';
+        log_with_guard(oss.str(), logger::severity::debug);
+
+        oss.str("");
         oss << "Can`t found free space to allocate " << size << " bytes" << '\n';
         throw std::runtime_error(oss.str());
     }
     catch (const std::exception& error)
     {
+        oss.str("");
+        oss << "Allocate with worst fit finish in " << get_typename() << " for " << size << " bytes size" << '\n';
+        log_with_guard(oss.str(), logger::severity::debug);
         throw std::runtime_error(error.what());
     }
 }
@@ -288,23 +488,85 @@ allocator_sorted_list::allocator_sorted_list(
 void allocator_sorted_list::deallocate(
     void* at)
 {
-    auto current = get_first_free_block();
-    auto at_char = reinterpret_cast<unsigned char*>(at);
-    if
+    std::ostringstream oss;
+    oss << "Deallocate memory method init in " << get_typename() << " at " << at << '\n';
+    log_with_guard(oss.str(), logger::severity::debug);
 
-    while (reinterpret_cast<unsigned char*>(current) < at_char)
+    if (!at)
     {
-        current = reinterpret_cast<allocator_sorted_list::meta_block_info*>(current->assotiated_ptr);
+        oss.str("");
+        oss << "Attempting to free a null pointer in " << get_typename() << '\n';
+        log_with_guard(oss.str(), logger::severity::warning);
+
+        oss.str("");
+        oss << "Deallocate memory method finish in " << get_typename() << " at " << at << '\n';
+        log_with_guard(oss.str(), logger::severity::debug);
+        return;
     }
+
+    auto mutex = get_mutex();
+    mutex->lock();
+
+    auto at_char = reinterpret_cast<unsigned char*>(at);
+    auto trusted_memory_char = reinterpret_cast<unsigned char*>(_trusted_memory);
+    if (block_get_associated_ptr(at_char) != trusted_memory_char)
+    {
+        std::ostringstream oss;
+        oss << "Can`t deallocate memory out of allocator working space." << '\n';
+        mutex->unlock();
+        throw std::runtime_error(oss.str());
+    }
+
+    auto current = reinterpret_cast<unsigned char*>(get_first_free_block());
+    unsigned char* prev = nullptr;
+
+    oss.str("");
+    oss << "Memory block state before cleaning: " << at << '\n';
+    log_with_guard(oss.str(), logger::severity::debug);
+
+    if (current != nullptr)
+    {
+        do
+        {
+            if (current > at_char)
+            {
+                block_set_associated_ptr(at_char, current);
+                if (block_get_next_block(at_char) == current)
+                {
+                    auto temp_size = block_get_size(at_char) + block_get_size(current) + BLOCK_META_SIZE;
+                    block_construct(at_char, block_get_associated_ptr(current), temp_size);
+                }
+
+                if (prev != nullptr && block_get_next_block(prev) == at_char)
+                {
+                    auto temp_size = block_get_size(prev) + block_get_size(at_char) + BLOCK_META_SIZE;
+                    block_construct(prev, block_get_associated_ptr(at_char), temp_size);
+                }
+
+                break;
+            }
+
+            prev = current;
+            current = block_get_associated_ptr(current);
+        } while (current != nullptr);
+    }
+    else
+    {
+        block_set_associated_ptr(at_char, trusted_memory_char);
+        set_first_free_block(at);
+    }
+
+    mutex->unlock();
+    oss.str("");
+    oss << "Deallocate memory method finish in " << get_typename() << " at " << at << '\n';
+    log_with_guard(oss.str(), logger::severity::debug);
 
     //throw not_implemented("void allocator_sorted_list::deallocate(void *)", "your code should be here...\n");
 }
 
 void allocator_sorted_list::free_memory()
 {
-    auto free_block = get_first_free_block();
-    //make here clear
-
+    get_mutex()->~mutex();
     deallocate_with_guard(_trusted_memory);
 }
 
@@ -335,8 +597,7 @@ inline allocator_with_fit_mode::fit_mode allocator_sorted_list::get_fit_mode() c
 inline void allocator_sorted_list::set_fit_mode(allocator_with_fit_mode::fit_mode mode)
 {
     auto memory = reinterpret_cast<unsigned char*>(_trusted_memory) + FITMODE_BYTES_SHIFT;
-    auto fitmode_value = *(reinterpret_cast<allocator_with_fit_mode::fit_mode*>(memory));
-    fitmode_value = mode;
+    *(reinterpret_cast<allocator_with_fit_mode::fit_mode*>(memory)) = mode;
     //throw not_implemented("inline void allocator_sorted_list::set_fit_mode(allocator_with_fit_mode::fit_mode)", "your code should be here...");
 }
 
@@ -357,14 +618,21 @@ inline void allocator_sorted_list::set_allocator(allocator* allocator_value)
 std::vector<allocator_test_utils::block_info> allocator_sorted_list::get_blocks_info() const noexcept
 {
     std::vector<allocator_test_utils::block_info> result{};
-    auto free_block = get_first_free_block();
-    if (free_block != nullptr)
+
+    auto current = reinterpret_cast<unsigned char*>(_trusted_memory) + ALLOCATOR_META_SIZE;
+    auto trusted_memory_char = reinterpret_cast<unsigned char*>(_trusted_memory);
+    auto trusted_memory_char_end = trusted_memory_char + ALLOCATOR_META_SIZE + get_space_size();
+
+    if (current != nullptr)
     {
         do
         {
-            result.push_back(free_block->base_info);
-            free_block = reinterpret_cast<allocator_sorted_list::meta_block_info*>(free_block->assotiated_ptr);
-        } while (free_block->assotiated_ptr != nullptr);
+            auto info = block_info();
+            info.block_size = block_get_size(current);
+            info.is_block_occupied = block_get_associated_ptr(current) == trusted_memory_char;
+            result.push_back(info);
+            current = block_get_next_block(current);
+        } while (current != nullptr);
     }
 
     return result;
@@ -388,27 +656,27 @@ inline void allocator_sorted_list::set_logger(logger* logger_value)
 inline std::mutex* allocator_sorted_list::get_mutex() const
 {
     auto memory = reinterpret_cast<unsigned char*>(_trusted_memory) + MUTEX_BYTES_SHIFT;
-    auto mutex_value = *(reinterpret_cast<std::mutex**>(memory));
+    auto mutex_value = reinterpret_cast<std::mutex*>(memory);
     return mutex_value;
 }
 
-inline void allocator_sorted_list::set_mutex(std::mutex* mutex_value)
+inline void allocator_sorted_list::init_mutex()
 {
     auto memory = reinterpret_cast<unsigned char*>(_trusted_memory) + MUTEX_BYTES_SHIFT;
-    *(reinterpret_cast<std::mutex**>(memory)) = mutex_value;
+    new (reinterpret_cast<std::mutex*>(memory)) std::mutex();
 }
 
-inline allocator_sorted_list::meta_block_info* allocator_sorted_list::get_first_free_block() const
+inline void* allocator_sorted_list::get_first_free_block() const
 {
     auto memory = reinterpret_cast<unsigned char*>(_trusted_memory) + FIRST_FREE_BLOCK_BYTES_SHIFT;
-    auto free_block_ptr = *(reinterpret_cast<allocator_sorted_list::meta_block_info**>(memory));
+    auto free_block_ptr = *(reinterpret_cast<void**>(memory));
     return free_block_ptr;
 }
 
-inline void allocator_sorted_list::set_first_free_block(allocator_sorted_list::meta_block_info* free_block_ptr)
+inline void allocator_sorted_list::set_first_free_block(void* free_block_ptr)
 {
     auto memory = reinterpret_cast<unsigned char*>(_trusted_memory) + FIRST_FREE_BLOCK_BYTES_SHIFT;
-    *(reinterpret_cast<allocator_sorted_list::meta_block_info**>(memory)) = free_block_ptr;
+    *(reinterpret_cast<void**>(memory)) = free_block_ptr;
 }
 
 inline std::string allocator_sorted_list::get_typename() const noexcept

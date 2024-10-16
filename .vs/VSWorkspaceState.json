@@ -1,6 +1,10 @@
 {
   "OutputFoldersPerTargetSystem": {
-    "Локальный компьютер": [
+    "\u041B\u043E\u043A\u0430\u043B\u044C\u043D\u044B\u0439 \u043A\u043E\u043C\u043F\u044C\u044E\u0442\u0435\u0440": [
+      "out\\build\\x64-Debug",
+      "out\\install\\x64-Debug"
+    ],
+    "Local Machine": [
       "out\\build\\x64-Debug",
       "out\\install\\x64-Debug"
     ]
@@ -8,15 +12,16 @@
   "ExpandedNodes": [
     "",
     "\\allocator",
-    "\\allocator\\allocator",
-    "\\allocator\\allocator\\src",
-    "\\allocator\\allocator_boundary_tags",
-    "\\allocator\\allocator_buddies_system",
-    "\\allocator\\allocator_buddies_system\\include",
     "\\allocator\\allocator_global_heap",
+    "\\allocator\\allocator_global_heap\\src",
     "\\allocator\\allocator_sorted_list",
-    "\\allocator\\allocator_sorted_list\\include"
+    "\\allocator\\allocator_sorted_list\\tests",
+    "\\associative_container",
+    "\\associative_container\\search_tree",
+    "\\associative_container\\search_tree\\binary_search_tree",
+    "\\associative_container\\search_tree\\binary_search_tree\\include",
+    "\\associative_container\\search_tree\\indexing_tree"
   ],
-  "SelectedNode": "\\allocator\\allocator_sorted_list\\src\\allocator_sorted_list.cpp",
+  "SelectedNode": "\\allocator\\allocator_sorted_list\\tests\\allocator_sorted_list_tests.cpp",
   "PreviewInSolutionExplorer": false
 }

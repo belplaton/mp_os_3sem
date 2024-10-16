@@ -71,14 +71,6 @@ function(sleep_before_download attempt)
   execute_process(COMMAND "${CMAKE_COMMAND}" -E sleep "${sleep_seconds}")
 endfunction()
 
-if("D:/_Platon/_Files/GitHub/mp_os_3sem/out/build/x64-Debug/_deps/googletest-subbuild/googletest-populate-prefix/src/03597a01ee50ed33e9dfd640b249b4be3799d395.zip" STREQUAL "")
-  message(FATAL_ERROR "LOCAL can't be empty")
-endif()
-
-if("https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip" STREQUAL "")
-  message(FATAL_ERROR "REMOTE can't be empty")
-endif()
-
 if(EXISTS "D:/_Platon/_Files/GitHub/mp_os_3sem/out/build/x64-Debug/_deps/googletest-subbuild/googletest-populate-prefix/src/03597a01ee50ed33e9dfd640b249b4be3799d395.zip")
   check_file_hash(has_hash hash_is_good)
   if(has_hash)
@@ -108,14 +100,14 @@ message(STATUS "Downloading...
    timeout='none'
    inactivity timeout='none'"
 )
-set(download_retry_codes 7 6 8 15)
+set(download_retry_codes 7 6 8 15 28)
 set(skip_url_list)
 set(status_code)
 foreach(i RANGE ${retry_number})
   if(status_code IN_LIST download_retry_codes)
     sleep_before_download(${i})
   endif()
-  foreach(url https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip)
+  foreach(url IN ITEMS [====[https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip]====])
     if(NOT url IN_LIST skip_url_list)
       message(STATUS "Using src='${url}'")
 

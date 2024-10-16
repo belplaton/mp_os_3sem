@@ -71,14 +71,6 @@ function(sleep_before_download attempt)
   execute_process(COMMAND "${CMAKE_COMMAND}" -E sleep "${sleep_seconds}")
 endfunction()
 
-if("D:/_Platon/_Files/GitHub/mp_os_3sem/out/build/x64-Debug/_deps/json-subbuild/json-populate-prefix/src/json.tar.xz" STREQUAL "")
-  message(FATAL_ERROR "LOCAL can't be empty")
-endif()
-
-if("https://github.com/nlohmann/json/releases/download/v3.11.2/json.tar.xz" STREQUAL "")
-  message(FATAL_ERROR "REMOTE can't be empty")
-endif()
-
 if(EXISTS "D:/_Platon/_Files/GitHub/mp_os_3sem/out/build/x64-Debug/_deps/json-subbuild/json-populate-prefix/src/json.tar.xz")
   check_file_hash(has_hash hash_is_good)
   if(has_hash)
@@ -108,14 +100,14 @@ message(STATUS "Downloading...
    timeout='none'
    inactivity timeout='none'"
 )
-set(download_retry_codes 7 6 8 15)
+set(download_retry_codes 7 6 8 15 28)
 set(skip_url_list)
 set(status_code)
 foreach(i RANGE ${retry_number})
   if(status_code IN_LIST download_retry_codes)
     sleep_before_download(${i})
   endif()
-  foreach(url https://github.com/nlohmann/json/releases/download/v3.11.2/json.tar.xz)
+  foreach(url IN ITEMS [====[https://github.com/nlohmann/json/releases/download/v3.11.2/json.tar.xz]====])
     if(NOT url IN_LIST skip_url_list)
       message(STATUS "Using src='${url}'")
 
