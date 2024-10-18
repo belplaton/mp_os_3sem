@@ -196,6 +196,6 @@ inline logger *allocator_global_heap::get_logger() const
 
 inline std::string allocator_global_heap::get_typename() const noexcept
 {
-    return "allocator_global_heap";
+    return ("allocator_global_heap");
     //throw not_implemented("inline std::string allocator_global_heap::get_typename() const noexcept", "your code should be here...");
 }

@@ -44,10 +44,10 @@ public:
     ~allocator_sorted_list() override;
     
     allocator_sorted_list(
-        allocator_sorted_list const &other);
+        allocator_sorted_list const &other) = delete;
     
     allocator_sorted_list &operator=(
-        allocator_sorted_list const &other);
+        allocator_sorted_list const &other) = delete;
     
     allocator_sorted_list(
         allocator_sorted_list &&other) noexcept;
@@ -69,8 +69,10 @@ public:
         size_t value_size,
         size_t values_count) override;
 
-private:
+    void deallocate(
+        void* at) override;
 
+private:
 
     unsigned char* block_construct(unsigned char*, unsigned char*, size_t);
 
@@ -86,32 +88,27 @@ private:
 
     [[nodiscard]] unsigned char* allocate_block(unsigned char* prev, unsigned char* next, size_t size);
 
+private:
+
     [[nodiscard]] unsigned char* allocate_first_fit(size_t size);
 
     [[nodiscard]] unsigned char* allocate_best_fit(size_t size);
 
     [[nodiscard]] unsigned char* allocate_worst_fit(size_t size);
 
-public:
-
-    void deallocate(
-        void *at) override;
-
-private:
-
     void free_memory();
-
-public:
-
-    inline size_t get_space_size() const;
-
-    inline void set_space_size(size_t);
 
 public:
 
     inline allocator_with_fit_mode::fit_mode get_fit_mode() const override;
 
     inline void set_fit_mode(allocator_with_fit_mode::fit_mode mode) override;
+
+private:
+
+    inline size_t get_space_size() const;
+
+    inline void set_space_size(size_t);
 
 private:
     

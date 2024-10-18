@@ -12,16 +12,15 @@
   "ExpandedNodes": [
     "",
     "\\allocator",
+    "\\allocator\\allocator",
+    "\\allocator\\allocator\\src",
+    "\\allocator\\allocator_boundary_tags",
+    "\\allocator\\allocator_boundary_tags\\src",
+    "\\allocator\\allocator_boundary_tags\\tests",
     "\\allocator\\allocator_global_heap",
-    "\\allocator\\allocator_global_heap\\src",
-    "\\allocator\\allocator_sorted_list",
-    "\\allocator\\allocator_sorted_list\\tests",
     "\\associative_container",
     "\\associative_container\\search_tree",
-    "\\associative_container\\search_tree\\binary_search_tree",
-    "\\associative_container\\search_tree\\binary_search_tree\\include",
     "\\associative_container\\search_tree\\indexing_tree"
   ],
-  "SelectedNode": "\\allocator\\allocator_sorted_list\\tests\\allocator_sorted_list_tests.cpp",
   "PreviewInSolutionExplorer": false
 }

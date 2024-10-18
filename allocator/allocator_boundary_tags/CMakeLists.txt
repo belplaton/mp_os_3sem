@@ -4,7 +4,7 @@ project(mp_os_allctr_allctr_bndr_tgs)
 add_subdirectory(tests)
 add_library(
         mp_os_allctr_allctr_bndr_tgs
-        src/allocator_boundary_tags.cpp)
+        src/allocator_boundary_tags.cpp   )
 target_include_directories(
         mp_os_allctr_allctr_bndr_tgs
         PUBLIC

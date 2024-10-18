@@ -71,7 +71,7 @@ client_logger::client_logger(
     const std::map<std::string, logger::severity>& files_severity, logger::severity console_severity, const std::string& output_format):
     _files_severity(),
     _console_severity(console_severity),
-    _output_format(output_format)
+    _output_format(output_format.empty() ? "[%t %d %s] %m" : output_format)
 {
     auto iter = files_severity.begin();
     while (iter != files_severity.end())

@@ -21,6 +21,7 @@ public:
         warning = 1 << 3,
         error = 1 << 4,
         critical = 1 << 5,
+        all = trace | debug | information | warning | error | critical
     };
 
     static const std::vector<severity> severities_list;
