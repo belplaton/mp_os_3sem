@@ -74,8 +74,6 @@ allocator_boundary_tags::allocator_boundary_tags(
         _trusted_memory = parent_allocator == nullptr
             ? ::operator new(full_size)
             : parent_allocator->allocate(full_size, 1);
-        std::cout << _trusted_memory << std::endl;
-        std::cout << reinterpret_cast<void*>(reinterpret_cast<unsigned char*>(_trusted_memory) + full_size) << std::endl;
     }
     catch (const std::exception& error)
     {
@@ -98,7 +96,8 @@ allocator_boundary_tags::allocator_boundary_tags(
 
     auto block_size = space_size - FREE_BLOCK_META_SIZE;
     auto block_char_start = reinterpret_cast<unsigned char*>(_trusted_memory) + ALLOCATOR_META_SIZE;
-    auto block_char_end = block_char_start + space_size - 1;
+    auto block_char_end = block_char_start + space_size;
+
     free_block_set_size(block_char_start, block_size, true);
     free_block_set_size(block_char_end, block_size, false);
     free_block_set_prev(block_char_start, nullptr, true);
@@ -224,19 +223,19 @@ void allocator_boundary_tags::captured_block_set_size(unsigned char* at_start_ch
 unsigned char* allocator_boundary_tags::captured_block_get_end(unsigned char* at_start_char) const
 {
     auto size = captured_block_get_size(at_start_char);
-    return at_start_char + size + CAPTURED_BLOCK_META_SIZE - 1;
+    return at_start_char + size + CAPTURED_BLOCK_META_SIZE;
 }
 
 unsigned char* allocator_boundary_tags::free_block_get_end(unsigned char* at_start_char) const
 {
     auto size = free_block_get_size(at_start_char, true);
-    return at_start_char + size + FREE_BLOCK_META_SIZE - 1;
+    return at_start_char + size + FREE_BLOCK_META_SIZE;
 }
 
 unsigned char* allocator_boundary_tags::free_block_get_start(unsigned char* at_end_char) const
 {
     auto size = free_block_get_size(at_end_char, false);
-    return at_end_char - size - FREE_BLOCK_META_SIZE + 1;
+    return at_end_char - size - FREE_BLOCK_META_SIZE;
 }
 
 bool allocator_boundary_tags::block_is_free(unsigned char* at_char_start) const
@@ -253,13 +252,17 @@ bool allocator_boundary_tags::block_is_free(unsigned char* at_char_start) const
 
     auto total_size = free_block_get_size(current, true);
     auto next = free_block_get_next(current, true);
-    if (free_block_get_size(current, true) >= CAPTURED_BLOCK_META_SIZE + size)
+
+    auto current_full_size = FREE_BLOCK_META_SIZE + free_block_get_size(current, true);
+    auto requested_full_size = CAPTURED_BLOCK_META_SIZE + size;
+    if (current_full_size >= requested_full_size)
     {
         total_size = size;
         auto temp_next = next;
-        auto next_size = free_block_get_size(current, true) - CAPTURED_BLOCK_META_SIZE - size;
-        auto next_end = next + FREE_BLOCK_META_SIZE + next_size - 1;
-        next = current + CAPTURED_BLOCK_META_SIZE + size;
+        auto next_size = current_full_size - requested_full_size - FREE_BLOCK_META_SIZE;
+
+        next = current + requested_full_size;
+        auto next_end = next + FREE_BLOCK_META_SIZE + next_size;
 
         block_set_ptr(next, temp_next, true);
         block_set_ptr(next_end, prev, false);
@@ -269,7 +272,7 @@ bool allocator_boundary_tags::block_is_free(unsigned char* at_char_start) const
 
     auto trusted_memory_char = reinterpret_cast<unsigned char*>(_trusted_memory);
     block_set_ptr(current, trusted_memory_char, true);
-    block_set_ptr(current + CAPTURED_BLOCK_META_SIZE + total_size - 1, trusted_memory_char, false);
+    block_set_ptr(current + CAPTURED_BLOCK_META_SIZE + total_size, trusted_memory_char, false);
     captured_block_set_size(current, total_size);
     if (prev != nullptr)
     {
@@ -277,8 +280,8 @@ bool allocator_boundary_tags::block_is_free(unsigned char* at_char_start) const
     }
     else
     {
-        auto current_void = reinterpret_cast<void*>(current);
-        set_first_free_block(current_void);
+        auto next_void = reinterpret_cast<void*>(next);
+        set_first_free_block(next_void);
     }
 
     return current + BLOCK_START_META_SIZE;

@@ -37,13 +37,13 @@ private:
     static constexpr size_t BLOCK_START_PTR_BYTES_SHIFT = 0;
     static constexpr size_t BLOCK_START_SIZE_BYTES_SHIFT = (BLOCK_START_PTR_BYTES_SHIFT + sizeof(void*));
 
-    static constexpr size_t BLOCK_END_PTR_BYTES_SHIFT = 0;
+    static constexpr size_t BLOCK_END_PTR_BYTES_SHIFT = sizeof(void*);
 
     static constexpr size_t FREE_BLOCK_END_META_SIZE = (sizeof(size_t) + sizeof(void*));
     static constexpr size_t FREE_BLOCK_END_SIZE_BYTES_SHIFT = (BLOCK_END_PTR_BYTES_SHIFT + sizeof(size_t));
     static constexpr size_t FREE_BLOCK_META_SIZE = BLOCK_START_META_SIZE + FREE_BLOCK_END_META_SIZE;
 
-    static constexpr size_t CAPTURED_BLOCK_END_META_SIZE = sizeof(size_t);
+    static constexpr size_t CAPTURED_BLOCK_END_META_SIZE = sizeof(void*);
     static constexpr size_t CAPTURED_BLOCK_META_SIZE = BLOCK_START_META_SIZE + CAPTURED_BLOCK_END_META_SIZE;
 
     static constexpr size_t BLOCKS_META_SIZE_DIFF = FREE_BLOCK_META_SIZE - CAPTURED_BLOCK_META_SIZE;
