@@ -120,11 +120,30 @@ TEST(falsePositiveTests, test1)
     delete logger_instance;
 }
 
-int main(
+void printInfo(allocator_boundary_tags const& all) {
+    auto info = all.get_blocks_info();
+    for (auto i : info) {
+        std::cout << i.block_size << ' ' << i.is_block_occupied << std::endl;
+    }
+    std::cout << std::endl;
+}
+
+int main() {
+    std::cout << 5 << std::endl;
+
+    auto logger = create_logger({}, true, logger::severity::debug | logger::severity::error | logger::severity::trace);
+    allocator_boundary_tags all(2000, nullptr, logger, allocator_boundary_tags::fit_mode::the_best_fit);
+    printInfo(all);
+    std::cout << 11 << std::endl;
+    auto p = all.allocate(1, 200);
+    return 0;
+}
+
+/*int main(
     int argc,
     char *argv[])
 {
     testing::InitGoogleTest(&argc, argv);
-    
+
     return RUN_ALL_TESTS();
-}
+}*/

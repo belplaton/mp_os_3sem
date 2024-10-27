@@ -19,8 +19,8 @@
     "\\allocator\\allocator_boundary_tags\\tests",
     "\\allocator\\allocator_global_heap",
     "\\associative_container",
-    "\\associative_container\\search_tree",
-    "\\associative_container\\search_tree\\indexing_tree"
+    "\\associative_container\\search_tree\\include"
   ],
+  "SelectedNode": "\\CMakeLists.txt",
   "PreviewInSolutionExplorer": false
 }

@@ -74,6 +74,8 @@ allocator_boundary_tags::allocator_boundary_tags(
         _trusted_memory = parent_allocator == nullptr
             ? ::operator new(full_size)
             : parent_allocator->allocate(full_size, 1);
+        std::cout << _trusted_memory << std::endl;
+        std::cout << reinterpret_cast<void*>(reinterpret_cast<unsigned char*>(_trusted_memory) + full_size) << std::endl;
     }
     catch (const std::exception& error)
     {
@@ -81,6 +83,7 @@ allocator_boundary_tags::allocator_boundary_tags(
             ? ::operator delete(_trusted_memory)
             : parent_allocator->deallocate(_trusted_memory);
 
+        _trusted_memory = nullptr;
         if (logger != nullptr)
             logger->log(error.what(), logger::severity::error);
 
@@ -633,6 +636,7 @@ void allocator_boundary_tags::free_memory()
     {
         get_mutex()->~mutex();
         deallocate_with_guard(_trusted_memory);
+        _trusted_memory = nullptr;
     }
 }
 

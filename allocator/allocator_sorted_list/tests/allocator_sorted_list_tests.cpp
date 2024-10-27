@@ -79,6 +79,7 @@ TEST(allocatorSortedListPositiveTests, test2)
 TEST(allocatorSortedListPositiveTests, test3)
 {
     //TODO: logger
+
     allocator *allocator = new allocator_sorted_list(5000, nullptr, nullptr, allocator_with_fit_mode::fit_mode::first_fit);
     
     int iterations_count = 100;
@@ -140,7 +141,8 @@ TEST(allocatorSortedListPositiveTests, test4)
 {
     //TODO: logger
     
-    allocator *alloc = new allocator_sorted_list(1000, nullptr, nullptr, allocator_with_fit_mode::fit_mode::first_fit);
+    auto logger = create_logger({}, true, logger::severity::debug | logger::severity::error);
+    allocator *alloc = new allocator_sorted_list(1000, nullptr, logger, allocator_with_fit_mode::fit_mode::first_fit);
     
     auto first_block = reinterpret_cast<unsigned char *>(alloc->allocate(sizeof(unsigned char), 250));
     auto second_block = reinterpret_cast<unsigned char *>(alloc->allocate(sizeof(char), 150));
@@ -166,7 +168,8 @@ TEST(allocatorSortedListPositiveTests, test4)
 
 TEST(allocatorSortedListPositiveTests, test5)
 {
-    allocator *alloc = new allocator_sorted_list(3000, nullptr, nullptr, allocator_with_fit_mode::fit_mode::first_fit);
+    auto logger = create_logger({}, true, logger::severity::debug | logger::severity::error);
+    allocator *alloc = new allocator_sorted_list(3000, nullptr, logger, allocator_with_fit_mode::fit_mode::first_fit);
     
     auto first_block = reinterpret_cast<int *>(alloc->allocate(sizeof(int), 250));
     auto second_block = reinterpret_cast<char *>(alloc->allocate(sizeof(char), 500));
@@ -175,7 +178,7 @@ TEST(allocatorSortedListPositiveTests, test5)
     first_block = reinterpret_cast<int *>(alloc->allocate(sizeof(int), 245));
     
     //TODO: logger
-    allocator *allocator = new allocator_sorted_list(5000, nullptr, nullptr, allocator_with_fit_mode::fit_mode::first_fit);
+    allocator *allocator = new allocator_sorted_list(5000, nullptr, logger, allocator_with_fit_mode::fit_mode::first_fit);
     auto *the_same_subject = dynamic_cast<allocator_with_fit_mode *>(alloc);
     int iterations_count = 100;
     
