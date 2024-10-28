@@ -553,7 +553,7 @@ std::vector<allocator_test_utils::block_info> allocator_sorted_list::get_blocks_
         do
         {
             auto info = block_info();
-            info.block_size = block_get_size(current);
+            info.block_size = block_get_size(current) + BLOCK_META_SIZE;
             info.is_block_occupied = block_get_associated_ptr(current) == trusted_memory_char;
             result.push_back(info);
             current = block_get_next_block(current);
