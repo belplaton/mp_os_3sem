@@ -74,6 +74,11 @@ allocator_boundary_tags::allocator_boundary_tags(
         _trusted_memory = parent_allocator == nullptr
             ? ::operator new(full_size)
             : parent_allocator->allocate(full_size, 1);
+
+        oss.str("");
+        oss << "Allocated " << space_size << " bytes of usable memory and " << ALLOCATOR_META_SIZE << " bytes of allocator meta data" << '\n';
+        if (logger != nullptr)
+            logger->log(oss.str(), logger::severity::debug);
     }
     catch (const std::exception& error)
     {
@@ -256,7 +261,7 @@ bool allocator_boundary_tags::block_is_free(unsigned char* at_char, bool is_star
 
     auto current_full_size = FREE_BLOCK_META_SIZE + free_block_get_size(current, true);
     auto requested_full_size = CAPTURED_BLOCK_META_SIZE + size;
-    if (current_full_size >= requested_full_size)
+    if (current_full_size - requested_full_size >= FREE_BLOCK_META_SIZE)
     {
         total_size = size;
         auto temp_next = next;
@@ -269,6 +274,10 @@ bool allocator_boundary_tags::block_is_free(unsigned char* at_char, bool is_star
         block_set_ptr(next_end, prev, false);
         free_block_set_size(next, next_size, true);
         free_block_set_size(next_end, next_size, false);
+    }
+    else
+    {
+        total_size += BLOCKS_META_SIZE_DIFF;
     }
 
     auto trusted_memory_char = reinterpret_cast<unsigned char*>(_trusted_memory);
@@ -287,7 +296,6 @@ bool allocator_boundary_tags::block_is_free(unsigned char* at_char, bool is_star
 
     return current + BLOCK_START_META_SIZE;
 }
-
 
 #pragma endregion
 
@@ -417,7 +425,8 @@ bool allocator_boundary_tags::block_is_free(unsigned char* at_char, bool is_star
         unsigned char* prev = nullptr;
         do
         {
-            if (free_block_get_size(current, true) + BLOCKS_META_SIZE_DIFF >= size)
+            auto x = free_block_get_size(current, true);
+            if (x + BLOCKS_META_SIZE_DIFF >= size)
             {
                 if (best == nullptr)
                 {
@@ -489,6 +498,9 @@ bool allocator_boundary_tags::block_is_free(unsigned char* at_char, bool is_star
 void allocator_boundary_tags::deallocate(
     void *at)
 {
+    auto mutex = get_mutex();
+    std::lock_guard<std::mutex> lock(*mutex);
+
     std::ostringstream oss;
     oss << "Deallocate memory method init in " << get_typename() << " at " << at << '\n';
     log_with_guard(oss.str(), logger::severity::debug);
@@ -504,9 +516,6 @@ void allocator_boundary_tags::deallocate(
         log_with_guard(oss.str(), logger::severity::debug);
         return;
     }
-
-    auto mutex = get_mutex();
-    std::lock_guard<std::mutex> lock(*mutex);
 
     auto at_char_start = reinterpret_cast<unsigned char*>(at) - BLOCK_START_META_SIZE;
     auto trusted_memory_char = reinterpret_cast<unsigned char*>(_trusted_memory);
@@ -639,6 +648,14 @@ void allocator_boundary_tags::deallocate(
             set_first_free_block(at_char_start);
         }
     }
+
+    oss.str("");
+    oss << "Memory after deallocate: " << get_blocks_info_str() << "\n";
+    log_with_guard(oss.str(), logger::severity::debug);
+
+    oss.str("");
+    oss << "Free memory left after deallocate: " << get_blocks_info_str(block_info_type::avail) << "\n";
+    log_with_guard(oss.str(), logger::severity::information);
 
     oss.str("");
     oss << "Deallocate memory method finish in " << get_typename() << " at " << at << '\n';

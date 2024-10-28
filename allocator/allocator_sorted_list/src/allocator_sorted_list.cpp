@@ -74,6 +74,11 @@ allocator_sorted_list::allocator_sorted_list(
         _trusted_memory = parent_allocator == nullptr
             ? ::operator new(full_size)
             : parent_allocator->allocate(full_size, 1);
+
+        oss.str("");
+        oss << "Allocated " << space_size << " bytes of usable memory and " << ALLOCATOR_META_SIZE << " bytes of allocator meta data" << '\n';
+        if (logger != nullptr)
+            logger->log(oss.str(), logger::severity::debug);
     }
     catch (const std::exception& error)
     {
@@ -459,7 +464,7 @@ void allocator_sorted_list::deallocate(
         log_with_guard(oss.str(), logger::severity::debug);
 
         oss.str("");
-        oss << "Free memory left after allocate: " << get_blocks_info_str(block_info_type::avail) << "\n";
+        oss << "Free memory left after deallocate: " << get_blocks_info_str(block_info_type::avail) << "\n";
         log_with_guard(oss.str(), logger::severity::information);
 
         oss.str("");
