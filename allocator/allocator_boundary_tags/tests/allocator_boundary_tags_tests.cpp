@@ -136,6 +136,8 @@ int main() {
     printInfo(all);
     std::cout << 11 << std::endl;
     auto p = all.allocate(1, 200);
+
+    all.deallocate(p);
     return 0;
 }
 

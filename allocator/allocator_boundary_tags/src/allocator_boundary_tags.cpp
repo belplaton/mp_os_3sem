@@ -238,9 +238,10 @@ unsigned char* allocator_boundary_tags::free_block_get_start(unsigned char* at_e
     return at_end_char - size - FREE_BLOCK_META_SIZE;
 }
 
-bool allocator_boundary_tags::block_is_free(unsigned char* at_char_start) const
+bool allocator_boundary_tags::block_is_free(unsigned char* at_char, bool is_start) const
 {
-    return *reinterpret_cast<unsigned char**>(at_char_start + BLOCK_START_PTR_BYTES_SHIFT) != reinterpret_cast<unsigned char*>(_trusted_memory);
+    auto ptr = block_get_ptr(at_char, is_start);
+    return ptr != reinterpret_cast<unsigned char*>(_trusted_memory);
 }
 
 [[nodiscard]] unsigned char* allocator_boundary_tags::allocate_block(unsigned char* prev, unsigned char* current, size_t size)
@@ -505,7 +506,7 @@ void allocator_boundary_tags::deallocate(
     }
 
     auto mutex = get_mutex();
-    mutex->lock();
+    std::lock_guard<std::mutex> lock(*mutex);
 
     auto at_char_start = reinterpret_cast<unsigned char*>(at) - BLOCK_START_META_SIZE;
     auto trusted_memory_char = reinterpret_cast<unsigned char*>(_trusted_memory);
@@ -513,7 +514,6 @@ void allocator_boundary_tags::deallocate(
     {
         std::ostringstream oss;
         oss << "Can`t deallocate memory out of allocator working space." << '\n';
-        mutex->unlock();
         throw std::runtime_error(oss.str());
     }
 
@@ -522,55 +522,66 @@ void allocator_boundary_tags::deallocate(
     log_with_guard(oss.str(), logger::severity::debug);
 
     auto memory_space_char_start = reinterpret_cast<unsigned char*>(_trusted_memory) + ALLOCATOR_META_SIZE;
-    auto memory_space_char_end = memory_space_char_start + get_space_size() - 1;
+    auto memory_space_char_end = memory_space_char_start + get_space_size();
 
     auto at_char_end = captured_block_get_end(at_char_start);
+    unsigned char* left_final = nullptr;
+    unsigned char* right_final = nullptr;
 
-    if (at_char_end + 1 <= memory_space_char_end && block_get_ptr(at_char_end + 1, true) != trusted_memory_char)
+    auto is_any_neighboor = false;
+
+
+    if (at_char_end < memory_space_char_end && block_is_free(at_char_end, true))
     {
-        auto right_start = at_char_end + 1;
+        auto right_start = at_char_end;
         auto right_end = free_block_get_end(right_start);
-        auto right_prev = free_block_get_prev(right_start, true);
         auto new_size = free_block_get_size(right_start, true) + captured_block_get_size(at_char_start) + CAPTURED_BLOCK_META_SIZE;
+
+        left_final = free_block_get_prev(right_start, true);
+        right_final = free_block_get_next(right_end, false);
 
         free_block_set_size(at_char_start, new_size, true);
         free_block_set_size(right_end, new_size, false);
-        free_block_set_prev(at_char_start, right_prev, true);
-        if (right_prev != nullptr)
+        free_block_set_prev(at_char_start, left_final, true);
+
+        at_char_end = right_end;
+        is_any_neighboor = true;
+    }
+
+    if (at_char_start > memory_space_char_start && block_is_free(at_char_start, false))
+    {
+        auto left_end = at_char_start;
+        auto left_start = free_block_get_start(left_end);
+        auto new_size = free_block_get_size(left_start, true) + captured_block_get_size(at_char_start) + CAPTURED_BLOCK_META_SIZE;
+
+        left_final = free_block_get_prev(left_start, true);
+        if (right_final == nullptr)
         {
-            auto right_prev_end = free_block_get_end(right_prev);
-            free_block_set_next(right_prev, at_char_start, true);
-            if (right_prev_end == at_char_start - 1)
-            {
-                new_size += free_block_get_size(right_prev, true) + FREE_BLOCK_META_SIZE;
-                free_block_set_size(right_prev, new_size, true);
-                free_block_set_size(right_end, new_size, false);
-            }
+            right_final = free_block_get_next(left_end, false);
+        }
+
+        free_block_set_size(left_start, new_size, true);
+        free_block_set_size(left_end, new_size, false);
+        free_block_set_next(at_char_end, right_final, false);
+
+        at_char_start = left_start;
+        is_any_neighboor = true;
+    }
+
+    if (is_any_neighboor)
+    {
+        if (left_final != nullptr)
+        {
+            free_block_set_next(left_final, at_char_start, true);
         }
         else
         {
             set_first_free_block(at_char_start);
         }
-    }
-    else if (at_char_start - 1 >= memory_space_char_start && block_get_ptr(at_char_start - 1, false) != trusted_memory_char)
-    {
-        auto left_end = at_char_start - 1;
-        auto left_start = free_block_get_start(left_end);
-        auto left_next = free_block_get_next(left_start, true);
-        auto new_size = free_block_get_size(left_start, true) + captured_block_get_size(at_char_start) + CAPTURED_BLOCK_META_SIZE;
 
-        free_block_set_size(left_start, new_size, true);
-        free_block_set_size(left_end, new_size, false);
-        free_block_set_next(at_char_end, left_next, false);
-        if (left_next != nullptr)
+        if (right_final != nullptr)
         {
-            auto left_next_end = free_block_get_end(left_next);
-            if (left_next = at_char_end + 1)
-            {
-                new_size += free_block_get_size(left_next, true) + FREE_BLOCK_META_SIZE;
-                free_block_set_size(left_next, new_size, true);
-                free_block_set_size(left_next_end, new_size, false);
-            }
+            free_block_set_prev(right_final, at_char_start, true);
         }
     }
     else
@@ -590,7 +601,7 @@ void allocator_boundary_tags::deallocate(
                     auto temp_end = at_char_end;
                     free_block_set_prev(at_char_start, prev, true);
                     free_block_set_next(at_char_end, current, false);
-                    if (at_char_end + 1 == current)
+                    if (at_char_end == current)
                     {
                         at_char_is_free = true;
                         temp_size += free_block_get_size(current, true) + CAPTURED_BLOCK_META_SIZE;
@@ -599,7 +610,7 @@ void allocator_boundary_tags::deallocate(
                         temp_end = current_end;
                     }
 
-                    if (prev != nullptr && free_block_get_end(prev) + 1 == at_char_start)
+                    if (prev != nullptr && free_block_get_end(prev) == at_char_start)
                     {
                         temp_size += free_block_get_size(prev, true) + CAPTURED_BLOCK_META_SIZE;
                         if (at_char_is_free)
@@ -620,12 +631,15 @@ void allocator_boundary_tags::deallocate(
         }
         else
         {
-            (at_char_start, nullptr, true);
+            auto size = get_space_size() - FREE_BLOCK_META_SIZE;
+            free_block_set_size(at_char_start, size, true);
+            free_block_set_size(at_char_end, size, false);
+            free_block_set_prev(at_char_start, nullptr, true);
+            free_block_set_next(at_char_end, nullptr, false);
             set_first_free_block(at_char_start);
         }
     }
 
-    mutex->unlock();
     oss.str("");
     oss << "Deallocate memory method finish in " << get_typename() << " at " << at << '\n';
     log_with_guard(oss.str(), logger::severity::debug);
@@ -710,7 +724,7 @@ std::vector<allocator_test_utils::block_info> allocator_boundary_tags::get_block
         do
         {
             auto info = block_info();
-            info.is_block_occupied = !block_is_free(current);
+            info.is_block_occupied = !block_is_free(current, true);
             if (info.is_block_occupied)
             {
                 info.block_size = captured_block_get_size(current);

@@ -111,7 +111,7 @@ private:
 
     unsigned char* free_block_get_start(unsigned char* at_end_char) const;
 
-    bool block_is_free(unsigned char* at_char_start) const;
+    bool block_is_free(unsigned char* at_char, bool is_start) const;
 
     [[nodiscard]] unsigned char* allocate_block(unsigned char* prev, unsigned char* next, size_t size);
 
