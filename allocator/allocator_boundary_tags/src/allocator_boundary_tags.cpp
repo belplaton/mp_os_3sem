@@ -333,6 +333,10 @@ bool allocator_boundary_tags::block_is_free(unsigned char* at_char, bool is_star
 
         auto fit_mode = get_fit_mode();
         auto block_size = value_size * values_count;
+        if (block_size + CAPTURED_BLOCK_META_SIZE < FREE_BLOCK_META_SIZE)
+        {
+            block_size = BLOCKS_META_SIZE_DIFF;
+        }
 
         switch (fit_mode)
         {
@@ -390,7 +394,8 @@ bool allocator_boundary_tags::block_is_free(unsigned char* at_char, bool is_star
         unsigned char* prev = nullptr;
         do
         {
-            if (free_block_get_size(current, true) + BLOCKS_META_SIZE_DIFF < size)
+            auto a = free_block_get_size(current, true);
+            if (a + BLOCKS_META_SIZE_DIFF < size)
             {
                 prev = current;
                 current = free_block_get_next(current, true);
@@ -546,8 +551,8 @@ void allocator_boundary_tags::deallocate(
         auto right_end = free_block_get_end(right_start);
         temp_size += free_block_get_size(right_start, true);
 
-        free_block_set_size(at_char_start, temp_size + FREE_BLOCK_META_SIZE, true);
-        free_block_set_size(right_end, temp_size + FREE_BLOCK_META_SIZE, false);
+        free_block_set_size(at_char_start, temp_size, true);
+        free_block_set_size(right_end, temp_size, false);
 
         left_final = free_block_get_prev(right_start, true);
         right_final = free_block_get_next(right_end, false);
@@ -565,8 +570,8 @@ void allocator_boundary_tags::deallocate(
         auto left_start = free_block_get_start(left_end);
         temp_size += free_block_get_size(left_start, true);
 
-        free_block_set_size(left_start, temp_size + FREE_BLOCK_META_SIZE, true);
-        free_block_set_size(at_char_end, temp_size + FREE_BLOCK_META_SIZE, false);
+        free_block_set_size(left_start, temp_size, true);
+        free_block_set_size(at_char_end, temp_size, false);
 
         left_final = free_block_get_prev(left_start, true);
         right_final = free_block_get_next(left_end, false);
@@ -596,7 +601,8 @@ void allocator_boundary_tags::deallocate(
     }
     else
     {
-        auto current = reinterpret_cast<unsigned char*>(get_first_free_block());
+        auto first_block = reinterpret_cast<unsigned char*>(get_first_free_block());
+        auto current = first_block;
         unsigned char* prev = nullptr;
 
         while (current != nullptr)
@@ -615,6 +621,10 @@ void allocator_boundary_tags::deallocate(
         free_block_set_size(at_char_end, size, false);
         free_block_set_prev(at_char_start, prev, true);
         free_block_set_next(at_char_end, current, false);
+        if (at_char_start < first_block)
+        {
+            set_first_free_block(at_char_start);
+        }
     }
 
     oss.str("");
