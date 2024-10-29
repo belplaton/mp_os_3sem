@@ -34,12 +34,12 @@ private:
     static constexpr size_t FIRST_FREE_BLOCK_BYTES_SHIFT = (FITMODE_BYTES_SHIFT + sizeof(allocator_with_fit_mode::fit_mode));
 
     static constexpr size_t BLOCK_DEGREE_BYTES_SHIFT = 0;
-    static constexpr size_t BLOCK_PTR_BYTES_SHIFT = (BLOCK_DEGREE_BYTES_SHIFT + sizeof(size_t));
+    static constexpr size_t BLOCK_PTR_BYTES_SHIFT = (BLOCK_DEGREE_BYTES_SHIFT + sizeof(unsigned char));
 
     static constexpr size_t FREE_BLOCK_PTR_BYTES_SHIFT = (BLOCK_PTR_BYTES_SHIFT + sizeof(void*));
 
-    static constexpr size_t FREE_BLOCK_META_SIZE = (sizeof(size_t) + sizeof(void*) * 2);
-    static constexpr size_t CAPTURED_BLOCK_META_SIZE = (sizeof(size_t) + sizeof(void*));
+    static constexpr size_t FREE_BLOCK_META_SIZE = (sizeof(unsigned char) + sizeof(void*) * 2);
+    static constexpr size_t CAPTURED_BLOCK_META_SIZE = (sizeof(unsigned char) + sizeof(void*));
 
     static constexpr size_t BLOCKS_META_SIZE_DIFF = FREE_BLOCK_META_SIZE - CAPTURED_BLOCK_META_SIZE;
 
@@ -80,7 +80,7 @@ public:
 
 private:
 
-    [[nodiscard]] unsigned char* allocate_block(unsigned char* prev, unsigned char* next, size_t size);
+    [[nodiscard]] unsigned char* allocate_block(unsigned char* next, unsigned char degree);
 
     [[nodiscard]] unsigned char* allocate_first_fit(size_t size);
 
@@ -102,11 +102,11 @@ private:
 
     size_t block_get_size(unsigned char* at_char) const;
 
-    size_t block_get_degree(unsigned char* at_char) const;
+    unsigned char block_get_degree(unsigned char* at_char) const;
 
-    void block_set_degree(unsigned char* at_char, size_t degree);
+    void block_set_degree(unsigned char* at_char, unsigned char degree);
 
-    unsigned char* block_get_buddie(unsigned char* at_char, size_t degree) const;
+    unsigned char* block_get_buddie(unsigned char* at_char, unsigned char degree) const;
 
     unsigned char* block_get_buddie(unsigned char* at_char) const;
 
@@ -120,13 +120,17 @@ private:
 
     void free_block_set_next(unsigned char* at_char, unsigned char* next);
 
+    bool try_free_block_split(unsigned char* at_char);
+
+    void block_merge_to_free(unsigned char* at_char, unsigned char* prev, unsigned char* next);
+
 private:
 
     inline size_t get_space_size() const;
 
-    inline size_t get_space_degree() const;
+    inline unsigned char get_space_degree() const;
 
-    inline void set_space_degree(size_t);
+    inline void set_space_degree(unsigned char);
 
 public:
 

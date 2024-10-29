@@ -70,7 +70,7 @@ allocator_buddies_system::allocator_buddies_system(
     auto space_size = 1 << space_size_power_of_two;
     if (space_size < FREE_BLOCK_META_SIZE)
     {
-        space_size_power_of_two = nearest_power_of_two(FREE_BLOCK_META_SIZE) + 1;
+        space_size_power_of_two = nearest_power_of_two(FREE_BLOCK_META_SIZE);
         space_size = 1 << space_size_power_of_two;
     }
 
@@ -210,6 +210,49 @@ void allocator_buddies_system::deallocate(
 
 #pragma region Memory Operating
 
+[[nodiscard]] unsigned char* allocator_buddies_system::allocate_block(unsigned char* current, unsigned char degree)
+{
+    if (current == nullptr)
+    {
+        throw std::runtime_error("Can`t allocate memory in null block pointer");
+    }
+
+    auto trusted_memory_char = reinterpret_cast<unsigned char*>(_trusted_memory);
+    auto current_degree = block_get_degree(current);
+    auto prev = free_block_get_prev(current);
+    auto next = free_block_get_next(current);
+
+    for (auto i = 0; i < current_degree - degree; i++)
+    {
+        if (!try_free_block_split(current))
+        {
+            throw std::runtime_error("Something went wrong in allocate_block method.");
+        }
+
+        prev = free_block_get_prev(current);
+        next = free_block_get_next(current);
+    }
+
+    auto buddie = block_get_buddie(current);
+    block_set_ptr(current, trusted_memory_char);
+    if (prev != nullptr)
+    {
+        free_block_set_next(prev, next);
+    }
+    else
+    {
+        set_first_free_block(current);
+    }
+    
+    if (next != nullptr)
+    {
+        free_block_set_prev(next, prev);
+    }
+
+    return current + CAPTURED_BLOCK_META_SIZE;
+}
+
+
 [[nodiscard]] unsigned char* allocator_buddies_system::allocate_first_fit(size_t size)
 {
     std::ostringstream oss;
@@ -220,12 +263,12 @@ void allocator_buddies_system::deallocate(
     auto current = reinterpret_cast<unsigned char*>(first_free_block);
     if (current != nullptr)
     {
-        unsigned char* prev = nullptr;
         do
         {
-            if (block_get_size(current) + BLOCKS_META_SIZE_DIFF < size)
+            auto requested_full_size = CAPTURED_BLOCK_META_SIZE + size;
+            auto requested_degree = nearest_power_of_two(requested_full_size);
+            if (block_get_degree(current) < requested_degree)
             {
-                prev = current;
                 current = free_block_get_next(current);
                 continue;
             }
@@ -234,7 +277,7 @@ void allocator_buddies_system::deallocate(
             oss << "Allocate with first fit finish in " << get_typename() << " for " << size << " bytes size" << '\n';
             log_with_guard(oss.str(), logger::severity::debug);
 
-            return allocate_block(prev, current, size);
+            return allocate_block(current, requested_degree);
         } while (current != nullptr);
     }
 
@@ -253,12 +296,13 @@ void allocator_buddies_system::deallocate(
     auto current = reinterpret_cast<unsigned char*>(first_free_block);
     if (current != nullptr)
     {
-        unsigned char* best_prev = nullptr;
         unsigned char* best = nullptr;
-        unsigned char* prev = nullptr;
+        auto requested_full_size = CAPTURED_BLOCK_META_SIZE + size;
+        auto requested_degree = nearest_power_of_two(requested_full_size);
+
         do
         {
-            if (block_get_size(current) + BLOCKS_META_SIZE_DIFF >= size)
+            if (block_get_degree(current) >= requested_degree)
             {
                 if (best == nullptr)
                 {
@@ -266,12 +310,10 @@ void allocator_buddies_system::deallocate(
                 }
                 else if (block_get_degree(best) > block_get_degree(current))
                 {
-                    best_prev = prev;
                     best = current;
                 }
             }
 
-            prev = current;
             current = free_block_get_next(current);
         } while (current != nullptr);
 
@@ -279,7 +321,7 @@ void allocator_buddies_system::deallocate(
         oss << "Allocate with best fit finish in " << get_typename() << " for " << size << " bytes size" << '\n';
         log_with_guard(oss.str(), logger::severity::trace);
 
-        return allocate_block(best_prev, best, size);
+        return allocate_block(best, requested_degree);
     }
 }
 
@@ -293,12 +335,13 @@ void allocator_buddies_system::deallocate(
     auto current = reinterpret_cast<unsigned char*>(first_free_block);
     if (current != nullptr)
     {
-        unsigned char* worst_prev = nullptr;
         unsigned char* worst = nullptr;
-        unsigned char* prev = nullptr;
+        auto requested_full_size = CAPTURED_BLOCK_META_SIZE + size;
+        auto requested_degree = nearest_power_of_two(requested_full_size);
+
         do
         {
-            if (block_get_size(current) + BLOCKS_META_SIZE_DIFF >= size)
+            if (block_get_degree(current) >= requested_degree)
             {
                 if (worst == nullptr)
                 {
@@ -306,12 +349,10 @@ void allocator_buddies_system::deallocate(
                 }
                 else if (block_get_degree(worst) < block_get_degree(current))
                 {
-                    worst_prev = prev;
                     worst = current;
                 }
             }
 
-            prev = current;
             current = free_block_get_next(current);
         } while (current != nullptr);
 
@@ -319,7 +360,7 @@ void allocator_buddies_system::deallocate(
         oss << "Allocate with worst fit finish in " << get_typename() << " for " << size << " bytes size" << '\n';
         log_with_guard(oss.str(), logger::severity::trace);
 
-        return allocate_block(worst_prev, worst, size);
+        return allocate_block(worst, requested_degree);
     }
 
     oss.str("");
@@ -375,22 +416,22 @@ size_t allocator_buddies_system::block_get_size(unsigned char* at_char) const
     return size;
 }
 
-size_t allocator_buddies_system::block_get_degree(unsigned char* at_char) const
+unsigned char allocator_buddies_system::block_get_degree(unsigned char* at_char) const
 {
     auto current = at_char + BLOCK_PTR_BYTES_SHIFT;
-    return *reinterpret_cast<size_t*>(current);
+    return *reinterpret_cast<unsigned char*>(current);
 }
 
-void allocator_buddies_system::block_set_degree(unsigned char* at_char, size_t degree)
+void allocator_buddies_system::block_set_degree(unsigned char* at_char, unsigned char degree)
 {
     auto current = at_char + BLOCK_PTR_BYTES_SHIFT;
-    *reinterpret_cast<size_t*>(current) = degree;
+    *reinterpret_cast<unsigned char*>(current) = degree;
 }
 
-unsigned char* allocator_buddies_system::block_get_buddie(unsigned char* at_char, size_t degree) const
+unsigned char* allocator_buddies_system::block_get_buddie(unsigned char* at_char, unsigned char degree) const
 {
     auto at_char_local = global_to_local(at_char);
-    auto block_size = 1 << degree;
+    auto block_size = 1ull << degree;
     auto buddie_local = at_char_local ^ block_size;
     return local_to_global(buddie_local);
 }
@@ -431,6 +472,35 @@ void allocator_buddies_system::free_block_set_next(unsigned char* at_char, unsig
     *reinterpret_cast<unsigned char**>(current) = next;
 }
 
+bool allocator_buddies_system::try_free_block_split(unsigned char* at_char)
+{
+    auto degree = block_get_degree(at_char);
+    auto size = block_get_size(at_char);
+    auto next = free_block_get_next(at_char);
+    if (size >= FREE_BLOCK_META_SIZE)
+    {
+        auto buddie = block_get_buddie(at_char, degree - 1);
+        block_set_degree(at_char, degree - 1);
+        block_set_degree(buddie, degree - 1);
+        free_block_set_next(at_char, buddie);
+        free_block_set_prev(buddie, at_char);
+        free_block_set_next(buddie, next);
+        return true;
+    }
+
+    return false;
+}
+
+void allocator_buddies_system::block_merge_to_free(unsigned char* at_char, unsigned char* prev, unsigned char* next)
+{
+    auto buddie = block_get_buddie(at_char);
+    auto current = global_to_local(buddie) < global_to_local(at_char) ? buddie : at_char;
+    auto degree = block_get_degree(current);
+    block_set_degree(current, degree + 1);
+    free_block_set_prev(current, prev);
+    free_block_set_next(current, next);
+}
+
 #pragma endregion
 
 #pragma region get - set main
@@ -442,17 +512,17 @@ inline size_t allocator_buddies_system::get_space_size() const
     return space_size;
 }
 
-inline size_t allocator_buddies_system::get_space_degree() const
+inline unsigned char allocator_buddies_system::get_space_degree() const
 {
     auto memory = reinterpret_cast<unsigned char*>(_trusted_memory) + BLOCK_DEGREE_BYTES_SHIFT;
-    auto size_value = *(reinterpret_cast<size_t*>(memory));
+    auto size_value = *(reinterpret_cast<unsigned char*>(memory));
     return size_value;
 }
 
-inline void allocator_buddies_system::set_space_degree(size_t size_value)
+inline void allocator_buddies_system::set_space_degree(unsigned char size_value)
 {
     auto memory = reinterpret_cast<unsigned char*>(_trusted_memory) + BLOCK_DEGREE_BYTES_SHIFT;
-    *(reinterpret_cast<size_t*>(memory)) = size_value;
+    *(reinterpret_cast<unsigned char*>(memory)) = size_value;
 }
 
 inline allocator_with_fit_mode::fit_mode allocator_buddies_system::get_fit_mode() const
@@ -576,7 +646,7 @@ unsigned int allocator_buddies_system::nearest_power_of_two(unsigned int N)
 {
     if (N < 1) return 0;
 
-    int exponent = static_cast<int>(std::floor(std::log2(N)));
+    int exponent = static_cast<int>(std::ceil(std::log2(N)));
     return static_cast<unsigned int>(std::pow(2, exponent));
 }
 

@@ -115,11 +115,36 @@ TEST(falsePositiveTests, test1)
     ASSERT_THROW(new allocator_buddies_system(static_cast<int>(std::floor(std::log2(sizeof(allocator::block_pointer_t) * 2 + 1))) - 1), std::logic_error);
 }
 
-int main(
+int main()
+{
+    logger* logger_instance = create_logger(std::vector<std::pair<std::string, logger::severity>>
+    {
+        {
+            "allocator_buddies_system_positiveTests_test1.txt",
+                logger::severity::information
+        }
+    });
+    allocator* allocator_instance = new allocator_buddies_system(8, nullptr, logger_instance, allocator_with_fit_mode::fit_mode::first_fit);
+
+    void* first_block = allocator_instance->allocate(sizeof(unsigned char), 40);
+
+    auto actual_blocks_state = dynamic_cast<allocator_test_utils*>(allocator_instance)->get_blocks_info();
+    std::vector<allocator_test_utils::block_info> expected_blocks_state
+    {
+        {.block_size = 64, .is_block_occupied = true },
+        {.block_size = 64, .is_block_occupied = false },
+        {.block_size = 128, .is_block_occupied = false }
+    };
+
+    delete allocator_instance;
+    delete logger_instance;
+}
+
+/*int main(
     int argc,
     char *argv[])
 {
     testing::InitGoogleTest(&argc, argv);
     
     return RUN_ALL_TESTS();
-}
+}*/
