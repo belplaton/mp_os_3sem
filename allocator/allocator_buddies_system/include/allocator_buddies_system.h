@@ -80,6 +80,18 @@ public:
 
 private:
 
+    [[nodiscard]] unsigned char* allocate_block(unsigned char* prev, unsigned char* next, size_t size);
+
+    [[nodiscard]] unsigned char* allocate_first_fit(size_t size);
+
+    [[nodiscard]] unsigned char* allocate_best_fit(size_t size);
+
+    [[nodiscard]] unsigned char* allocate_worst_fit(size_t size);
+
+    void free_memory();
+
+private:
+
     unsigned long long global_to_local(unsigned char* at_char) const;
 
     unsigned char* local_to_global(unsigned long long at_char) const;
@@ -87,6 +99,8 @@ private:
     unsigned char* block_get_ptr(unsigned char* at_char) const;
 
     void block_set_ptr(unsigned char* at_char, unsigned char* ptr);
+
+    size_t block_get_size(unsigned char* at_char) const;
 
     size_t block_get_degree(unsigned char* at_char) const;
 
@@ -106,19 +120,9 @@ private:
 
     void free_block_set_next(unsigned char* at_char, unsigned char* next);
 
-    [[nodiscard]] unsigned char* allocate_block(unsigned char* prev, unsigned char* next, size_t size);
-
 private:
 
-    [[nodiscard]] unsigned char* allocate_first_fit(size_t size);
-
-    [[nodiscard]] unsigned char* allocate_best_fit(size_t size);
-
-    [[nodiscard]] unsigned char* allocate_worst_fit(size_t size);
-
-    void free_memory();
-
-private:
+    inline size_t get_space_size() const;
 
     inline size_t get_space_degree() const;
 

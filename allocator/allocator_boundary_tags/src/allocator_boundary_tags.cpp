@@ -394,8 +394,7 @@ bool allocator_boundary_tags::block_is_free(unsigned char* at_char, bool is_star
         unsigned char* prev = nullptr;
         do
         {
-            auto a = free_block_get_size(current, true);
-            if (a + BLOCKS_META_SIZE_DIFF < size)
+            if (free_block_get_size(current, true) + BLOCKS_META_SIZE_DIFF < size)
             {
                 prev = current;
                 current = free_block_get_next(current, true);
@@ -430,8 +429,7 @@ bool allocator_boundary_tags::block_is_free(unsigned char* at_char, bool is_star
         unsigned char* prev = nullptr;
         do
         {
-            auto x = free_block_get_size(current, true);
-            if (x + BLOCKS_META_SIZE_DIFF >= size)
+            if (free_block_get_size(current, true) + BLOCKS_META_SIZE_DIFF >= size)
             {
                 if (best == nullptr)
                 {
