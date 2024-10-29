@@ -546,7 +546,7 @@ std::vector<allocator_test_utils::block_info> allocator_sorted_list::get_blocks_
 
     auto current = reinterpret_cast<unsigned char*>(_trusted_memory) + ALLOCATOR_META_SIZE;
     auto trusted_memory_char = reinterpret_cast<unsigned char*>(_trusted_memory);
-    auto trusted_memory_char_end = trusted_memory_char + ALLOCATOR_META_SIZE + get_space_size() - 1;
+    auto trusted_memory_char_end = trusted_memory_char + ALLOCATOR_META_SIZE + get_space_size();
 
     if (current != nullptr)
     {
