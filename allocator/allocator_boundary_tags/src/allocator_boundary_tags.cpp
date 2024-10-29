@@ -784,5 +784,6 @@ inline std::string allocator_boundary_tags::get_typename() const noexcept
     return ("allocator_boundary_tags");
     //throw not_implemented("inline std::string allocator_boundary_tags::get_typename() const noexcept", "your code should be here...");
 }
+
 #pragma endregion
 
