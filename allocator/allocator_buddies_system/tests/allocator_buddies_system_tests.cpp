@@ -157,6 +157,18 @@ int main()
 
     d_block = allocator_instance->allocate(sizeof(unsigned char), 1);
 
+    /*
+    1 and 32
+    32 = 16 + 16
+
+    1 + 9 = 10 where 9 - captured meta and 17 - free meta
+
+    10 + 22 (X)
+    16 > 9 ... 16 < 17 -> (X)
+    -> 1 -> 1 + 9 = 10 -> 10 -> 32
+    -> 32 - min alloc.
+    */
+
 
     auto actual_blocks_state = dynamic_cast<allocator_test_utils*>(allocator_instance)->get_blocks_info();
     std::vector<allocator_test_utils::block_info> expected_blocks_state
