@@ -117,14 +117,9 @@ TEST(falsePositiveTests, test1)
 
 int main()
 {
-    logger* logger_instance = create_logger(std::vector<std::pair<std::string, logger::severity>>
-    {
-        {
-            "allocator_buddies_system_positiveTests_test1.txt",
-                logger::severity::information
-        }
-    });
-    allocator* allocator_instance = new allocator_buddies_system(8, nullptr, logger_instance, allocator_with_fit_mode::fit_mode::first_fit);
+    logger* logger_instance = create_logger(std::vector<std::pair<std::string, logger::severity>>(), true,
+        logger::severity::debug | logger::severity::error | logger::severity::trace);
+    allocator_buddies_system* allocator_instance = new allocator_buddies_system(8, nullptr, logger_instance, allocator_with_fit_mode::fit_mode::first_fit);
 
     void* first_block = allocator_instance->allocate(sizeof(unsigned char), 40);
 

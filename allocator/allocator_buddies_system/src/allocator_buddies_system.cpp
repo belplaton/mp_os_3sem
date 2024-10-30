@@ -114,6 +114,10 @@ allocator_buddies_system::allocator_buddies_system(
     set_first_free_block(block_char);
 
     oss.str("");
+    oss << "Memory in constructed allocator: " << get_blocks_info_str() << "\n";
+    log_with_guard(oss.str(), logger::severity::debug);
+
+    oss.str("");
     oss << "Constructor finished for object of type: " << get_typename() << '\n';
     if (logger != nullptr)
         logger->log(oss.str(), logger::severity::trace);
@@ -568,8 +572,7 @@ std::vector<allocator_test_utils::block_info> allocator_buddies_system::get_bloc
 
     auto current = reinterpret_cast<unsigned char*>(_trusted_memory) + ALLOCATOR_META_SIZE;
     auto trusted_memory_char = reinterpret_cast<unsigned char*>(_trusted_memory);
-    auto space_size = 1 << get_space_degree();
-    auto trusted_memory_char_end = trusted_memory_char + ALLOCATOR_META_SIZE + space_size;
+    auto trusted_memory_char_end = trusted_memory_char + ALLOCATOR_META_SIZE + get_space_size();
 
     if (current != nullptr)
     {
@@ -579,12 +582,12 @@ std::vector<allocator_test_utils::block_info> allocator_buddies_system::get_bloc
             info.is_block_occupied = !block_is_free(current);
             if (info.is_block_occupied)
             {
-                info.block_size = block_get_degree(current) + CAPTURED_BLOCK_META_SIZE;
+                info.block_size = block_get_size(current) + CAPTURED_BLOCK_META_SIZE;
                 current += info.block_size;
             }
             else
             {
-                info.block_size = block_get_degree(current) + FREE_BLOCK_META_SIZE;
+                info.block_size = block_get_size(current) + FREE_BLOCK_META_SIZE;
                 current += info.block_size;
             }
 
@@ -646,8 +649,7 @@ unsigned int allocator_buddies_system::nearest_power_of_two(unsigned int N)
 {
     if (N < 1) return 0;
 
-    int exponent = static_cast<int>(std::ceil(std::log2(N)));
-    return static_cast<unsigned int>(std::pow(2, exponent));
+    return static_cast<unsigned int>(std::ceil(std::log2(N)));
 }
 
 #pragma endregion

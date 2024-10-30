@@ -110,6 +110,10 @@ allocator_boundary_tags::allocator_boundary_tags(
     set_first_free_block(block_char_start);
 
     oss.str("");
+    oss << "Memory in constructed allocator: " << get_blocks_info_str() << "\n";
+    log_with_guard(oss.str(), logger::severity::debug);
+
+    oss.str("");
     oss << "Constructor finished for object of type: " << get_typename() << '\n';
     if (logger != nullptr)
         logger->log(oss.str(), logger::severity::trace);
