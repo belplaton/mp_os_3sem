@@ -172,7 +172,9 @@ private:
     
 private:
 
-    unsigned int static nearest_power_of_two(unsigned int N);
+    unsigned int static constexpr nearest_power_of_two(unsigned int N);
+
+    unsigned char static constexpr get_degree_bottom_limit();
 
 };
 

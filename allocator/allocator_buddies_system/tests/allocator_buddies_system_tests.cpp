@@ -129,33 +129,14 @@ int main()
 
     void* d_block = allocator_instance->allocate(sizeof(unsigned char), 1);
 
-    d_block = allocator_instance->allocate(sizeof(unsigned char), 1);
+    void* e_block = allocator_instance->allocate(sizeof(unsigned char), 1);
 
-    d_block = allocator_instance->allocate(sizeof(unsigned char), 1);
+    void* f_block = allocator_instance->allocate(sizeof(unsigned char), 1);
 
-    d_block = allocator_instance->allocate(sizeof(unsigned char), 1);
-
-    d_block = allocator_instance->allocate(sizeof(unsigned char), 1);
-
-    d_block = allocator_instance->allocate(sizeof(unsigned char), 1);
-
-    d_block = allocator_instance->allocate(sizeof(unsigned char), 1);
-
-    d_block = allocator_instance->allocate(sizeof(unsigned char), 1);
-
-    d_block = allocator_instance->allocate(sizeof(unsigned char), 1);
-
-    d_block = allocator_instance->allocate(sizeof(unsigned char), 1);
-
-    d_block = allocator_instance->allocate(sizeof(unsigned char), 1);
-
-    d_block = allocator_instance->allocate(sizeof(unsigned char), 1);
-
-    d_block = allocator_instance->allocate(sizeof(unsigned char), 1);
-
-    d_block = allocator_instance->allocate(sizeof(unsigned char), 1);
-
-    d_block = allocator_instance->allocate(sizeof(unsigned char), 1);
+    allocator_instance->deallocate(e_block);
+    allocator_instance->deallocate(f_block);
+    allocator_instance->deallocate(c_block);
+    allocator_instance->deallocate(d_block);
 
     /*
     1 and 32

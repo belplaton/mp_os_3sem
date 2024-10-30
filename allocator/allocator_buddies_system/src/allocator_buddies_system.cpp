@@ -70,8 +70,7 @@ allocator_buddies_system::allocator_buddies_system(
     auto space_size = 1 << space_size_power_of_two;
     if (space_size < FREE_BLOCK_META_SIZE)
     {
-        space_size_power_of_two = nearest_power_of_two(FREE_BLOCK_META_SIZE);
-        space_size = 1 << space_size_power_of_two;
+        space_size = 1 << get_degree_bottom_limit();
     }
 
     try
@@ -238,19 +237,20 @@ void allocator_buddies_system::deallocate(
     log_with_guard(oss.str(), logger::severity::debug);
 
     auto at_degree = block_get_degree(at_char);
-    auto degree_depth = at_degree;
+    auto temp_degree = at_degree;
     auto free_block = block_get_buddie(at_char);
     auto space_degree = get_space_degree();
 
-    if (block_is_free(free_block) && degree_depth < space_degree)
+    if (block_is_free(free_block) && temp_degree < space_degree)
     {
+        auto temp = at_char;
         do
         {
-            auto temp = free_block < at_char ? free_block : at_char;
+            temp = free_block < temp ? free_block : temp;
             auto prev = free_block_get_prev(free_block);
             auto next = free_block_get_next(free_block);
 
-            block_set_degree(temp, degree_depth + 1);
+            block_set_degree(temp, temp_degree + 1);
             free_block_set_prev(temp, prev);
             free_block_set_next(temp, next);
             if (prev != nullptr)
@@ -268,8 +268,8 @@ void allocator_buddies_system::deallocate(
             }
 
             free_block = block_get_buddie(temp);
-            degree_depth++;
-        } while (block_is_free(free_block) && degree_depth < space_degree);
+            temp_degree++;
+        } while (block_is_free(free_block) && temp_degree < space_degree);
     }
     else
     {
@@ -750,11 +750,17 @@ inline std::string allocator_buddies_system::get_typename() const noexcept
     //throw not_implemented("inline std::string allocator_boundary_tags::get_typename() const noexcept", "your code should be here...");
 }
 
-unsigned int allocator_buddies_system::nearest_power_of_two(unsigned int N)
+unsigned int constexpr allocator_buddies_system::nearest_power_of_two(unsigned int N)
 {
     if (N < 1) return 0;
 
     return static_cast<unsigned int>(std::ceil(std::log2(N)));
+}
+
+unsigned char constexpr allocator_buddies_system::get_degree_bottom_limit()
+{
+    auto degree = nearest_power_of_two(FREE_BLOCK_META_SIZE);
+    return degree;
 }
 
 #pragma endregion
