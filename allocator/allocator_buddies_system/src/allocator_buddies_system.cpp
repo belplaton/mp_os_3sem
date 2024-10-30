@@ -243,18 +243,17 @@ void allocator_buddies_system::deallocate(
 
     if (block_is_free(free_block) && block_get_degree(free_block) == temp_degree && temp_degree < space_degree)
     {
+        auto prev = free_block_get_prev(free_block);
+        auto next = free_block_get_next(free_block);
+
         do
         {
-            auto prev = free_block_get_prev(free_block);
-            auto next = free_block_get_next(free_block);
-
             auto temp = block_merge_to_free(free_block, prev, next);
             free_block = block_get_buddie(temp);
             temp_degree++;
 
-            oss.str("");
-            oss << "DEBUG: " << get_blocks_info_str() << "\n";
-            log_with_guard(oss.str(), logger::severity::debug);
+            prev = free_block_get_prev(temp < free_block ? temp : free_block);
+            next = free_block_get_next(temp > free_block ? temp : free_block);
 
         } while (block_is_free(free_block) && block_get_degree(free_block) == temp_degree && temp_degree < space_degree);
     }
