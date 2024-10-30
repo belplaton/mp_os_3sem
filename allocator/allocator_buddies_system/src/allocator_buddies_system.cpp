@@ -205,7 +205,110 @@ allocator_buddies_system::allocator_buddies_system(
 void allocator_buddies_system::deallocate(
     void *at)
 {
-    throw not_implemented("void allocator_buddies_system::deallocate(void *)", "your code should be here...");
+    auto mutex = get_mutex();
+    std::lock_guard<std::mutex> lock(*mutex);
+
+    std::ostringstream oss;
+    oss << "Deallocate memory method init in " << get_typename() << " at " << at << '\n';
+    log_with_guard(oss.str(), logger::severity::debug);
+
+    if (!at)
+    {
+        oss.str("");
+        oss << "Attempting to free a null pointer in " << get_typename() << '\n';
+        log_with_guard(oss.str(), logger::severity::warning);
+
+        oss.str("");
+        oss << "Deallocate memory method finish in " << get_typename() << " at " << at << '\n';
+        log_with_guard(oss.str(), logger::severity::debug);
+        return;
+    }
+
+    auto at_char = reinterpret_cast<unsigned char*>(at) - CAPTURED_BLOCK_META_SIZE;
+    auto trusted_memory_char = reinterpret_cast<unsigned char*>(_trusted_memory);
+    if (block_get_ptr(at_char) != trusted_memory_char)
+    {
+        std::ostringstream oss;
+        oss << "Can`t deallocate memory out of allocator working space." << '\n';
+        throw std::runtime_error(oss.str());
+    }
+
+    oss.str("");
+    oss << "Memory block state before cleaning: " << at << '\n';
+    log_with_guard(oss.str(), logger::severity::debug);
+
+    auto at_degree = block_get_degree(at_char);
+    auto degree_depth = at_degree;
+    auto free_block = block_get_buddie(at_char);
+    auto space_degree = get_space_degree();
+
+    if (block_is_free(free_block) && degree_depth < space_degree)
+    {
+        do
+        {
+            auto temp = free_block < at_char ? free_block : at_char;
+            auto prev = free_block_get_prev(free_block);
+            auto next = free_block_get_next(free_block);
+
+            block_set_degree(temp, degree_depth + 1);
+            free_block_set_prev(temp, prev);
+            free_block_set_next(temp, next);
+            if (prev != nullptr)
+            {
+                free_block_set_next(prev, temp);
+            }
+            else
+            {
+                set_first_free_block(temp);
+            }
+
+            if (next != nullptr)
+            {
+                free_block_set_prev(next, temp);
+            }
+
+            free_block = block_get_buddie(temp);
+            degree_depth++;
+        } while (block_is_free(free_block) && degree_depth < space_degree);
+    }
+    else
+    {
+        auto first_block = reinterpret_cast<unsigned char*>(get_first_free_block());
+        auto current = first_block;
+        unsigned char* prev = nullptr;
+
+        while (current != nullptr)
+        {
+            if (current > at_char)
+            {
+                break;
+            }
+
+            prev = current;
+            current = free_block_get_next(current);
+        }
+
+        free_block_set_prev(at_char, prev);
+        free_block_set_next(at_char, current);
+        if (at_char < first_block)
+        {
+            set_first_free_block(at_char);
+        }
+    }
+
+    oss.str("");
+    oss << "Memory after deallocate: " << get_blocks_info_str() << "\n";
+    log_with_guard(oss.str(), logger::severity::debug);
+
+    oss.str("");
+    oss << "Free memory left after deallocate: " << get_blocks_info_str(block_info_type::avail) << "\n";
+    log_with_guard(oss.str(), logger::severity::information);
+
+    oss.str("");
+    oss << "Deallocate memory method finish in " << get_typename() << " at " << at << '\n';
+    log_with_guard(oss.str(), logger::severity::debug);
+
+    //throw not_implemented("void allocator_buddies_system::deallocate(void *)", "your code should be here...");
 }
 
 #pragma region Memory Operating
