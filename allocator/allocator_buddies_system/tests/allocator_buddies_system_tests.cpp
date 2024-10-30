@@ -119,9 +119,13 @@ int main()
 {
     logger* logger_instance = create_logger(std::vector<std::pair<std::string, logger::severity>>(), true,
         logger::severity::debug | logger::severity::error | logger::severity::trace);
-    allocator_buddies_system* allocator_instance = new allocator_buddies_system(8, nullptr, logger_instance, allocator_with_fit_mode::fit_mode::first_fit);
+    allocator_buddies_system* allocator_instance = new allocator_buddies_system(11, nullptr, logger_instance, allocator_with_fit_mode::fit_mode::first_fit);
 
-    void* first_block = allocator_instance->allocate(sizeof(unsigned char), 40);
+    void* c_block = allocator_instance->allocate(sizeof(unsigned char), 1);
+
+    void* a_block = allocator_instance->allocate(sizeof(unsigned char), 500);
+
+    void* b_block = allocator_instance->allocate(sizeof(unsigned char), 700);
 
     auto actual_blocks_state = dynamic_cast<allocator_test_utils*>(allocator_instance)->get_blocks_info();
     std::vector<allocator_test_utils::block_info> expected_blocks_state
