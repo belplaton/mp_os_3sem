@@ -105,13 +105,13 @@ allocator_buddies_system::allocator_buddies_system(
     set_fit_mode(allocate_fit_mode);
     init_mutex();
 
-    auto block_size = space_size - FREE_BLOCK_META_SIZE;
     auto block_char = reinterpret_cast<unsigned char*>(_trusted_memory) + ALLOCATOR_META_SIZE;
-
     free_block_set_prev(block_char, nullptr);
     free_block_set_next(block_char, nullptr);
     block_set_degree(block_char, space_size_power_of_two);
     set_first_free_block(block_char);
+
+    std::cout << reinterpret_cast<unsigned>(free_block_get_prev(block_char)) << " AND " << reinterpret_cast<unsigned>(free_block_get_next(block_char)) << std::endl;
 
     oss.str("");
     oss << "Memory in constructed allocator: " << get_blocks_info_str() << "\n";
@@ -422,13 +422,13 @@ size_t allocator_buddies_system::block_get_size(unsigned char* at_char) const
 
 unsigned char allocator_buddies_system::block_get_degree(unsigned char* at_char) const
 {
-    auto current = at_char + BLOCK_PTR_BYTES_SHIFT;
+    auto current = at_char + BLOCK_DEGREE_BYTES_SHIFT;
     return *reinterpret_cast<unsigned char*>(current);
 }
 
 void allocator_buddies_system::block_set_degree(unsigned char* at_char, unsigned char degree)
 {
-    auto current = at_char + BLOCK_PTR_BYTES_SHIFT;
+    auto current = at_char + BLOCK_DEGREE_BYTES_SHIFT;
     *reinterpret_cast<unsigned char*>(current) = degree;
 }
 
@@ -498,7 +498,7 @@ bool allocator_buddies_system::try_free_block_split(unsigned char* at_char)
 void allocator_buddies_system::block_merge_to_free(unsigned char* at_char, unsigned char* prev, unsigned char* next)
 {
     auto buddie = block_get_buddie(at_char);
-    auto current = global_to_local(buddie) < global_to_local(at_char) ? buddie : at_char;
+    auto current = buddie < at_char ? buddie : at_char;
     auto degree = block_get_degree(current);
     block_set_degree(current, degree + 1);
     free_block_set_prev(current, prev);
