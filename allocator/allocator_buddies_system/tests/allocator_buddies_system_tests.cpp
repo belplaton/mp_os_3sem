@@ -138,6 +138,7 @@ int main()
     allocator_instance->deallocate(c_block);
     allocator_instance->deallocate(d_block);
 
+    allocator_instance->deallocate(a_block);
     allocator_instance->deallocate(b_block);
 
     /*
