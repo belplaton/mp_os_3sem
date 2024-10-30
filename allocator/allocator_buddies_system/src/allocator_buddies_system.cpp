@@ -221,6 +221,7 @@ void allocator_buddies_system::deallocate(
     auto current_degree = block_get_degree(current);
     auto prev = free_block_get_prev(current);
     auto next = free_block_get_next(current);
+    auto temp = next;
 
     for (auto i = 0; i < current_degree - degree; i++)
     {
@@ -230,25 +231,29 @@ void allocator_buddies_system::deallocate(
         }
 
         prev = free_block_get_prev(current);
-        next = free_block_get_next(current);
+        temp = block_get_buddie(current);
+        next = free_block_get_next(temp);
+        if (next != nullptr)
+        {
+            free_block_set_prev(next, temp);
+        }
     }
 
-    auto buddie = block_get_buddie(current);
     block_set_ptr(current, trusted_memory_char);
+    if (temp != nullptr)
+    {
+        free_block_set_prev(temp, prev);
+    }
+
     if (prev != nullptr)
     {
-        free_block_set_next(prev, next);
+        free_block_set_next(prev, temp);
     }
     else
     {
-        set_first_free_block(next);
+        set_first_free_block(temp);
     }
-    
-    if (next != nullptr)
-    {
-        free_block_set_prev(next, prev);
-    }
-
+   
     return current + CAPTURED_BLOCK_META_SIZE;
 }
 

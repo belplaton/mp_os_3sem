@@ -129,6 +129,34 @@ int main()
 
     void* d_block = allocator_instance->allocate(sizeof(unsigned char), 1);
 
+    d_block = allocator_instance->allocate(sizeof(unsigned char), 1);
+
+    d_block = allocator_instance->allocate(sizeof(unsigned char), 1);
+
+    d_block = allocator_instance->allocate(sizeof(unsigned char), 1);
+
+    d_block = allocator_instance->allocate(sizeof(unsigned char), 1);
+
+    d_block = allocator_instance->allocate(sizeof(unsigned char), 1);
+
+    d_block = allocator_instance->allocate(sizeof(unsigned char), 1);
+
+    d_block = allocator_instance->allocate(sizeof(unsigned char), 1);
+
+    d_block = allocator_instance->allocate(sizeof(unsigned char), 1);
+
+    d_block = allocator_instance->allocate(sizeof(unsigned char), 1);
+
+    d_block = allocator_instance->allocate(sizeof(unsigned char), 1);
+
+    d_block = allocator_instance->allocate(sizeof(unsigned char), 1);
+
+    d_block = allocator_instance->allocate(sizeof(unsigned char), 1);
+
+    d_block = allocator_instance->allocate(sizeof(unsigned char), 1);
+
+    d_block = allocator_instance->allocate(sizeof(unsigned char), 1);
+
 
     auto actual_blocks_state = dynamic_cast<allocator_test_utils*>(allocator_instance)->get_blocks_info();
     std::vector<allocator_test_utils::block_info> expected_blocks_state
