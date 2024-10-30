@@ -44,3 +44,15 @@ std::string allocator_test_utils::get_blocks_info_str(allocator_test_utils::bloc
 
     return oss.str();
 }
+
+std::string allocator_test_utils::get_captured_block_data_str(void* at, size_t size) const noexcept
+{
+    std::ostringstream oss;
+    auto byte_array = reinterpret_cast<unsigned char*>(at);
+    for (auto i = 0; i < size; i++)
+    {
+        oss << std::hex << std::uppercase << (byte_array[i] < 0x10 ? "0" : "") << static_cast<int>(byte_array[i]) << " ";
+    }
+
+    return oss.str();
+}

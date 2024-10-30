@@ -92,7 +92,9 @@ TEST(positiveTests, test2)
 
 TEST(positiveTests, test3)
 {
-    allocator *allocator_instance = new allocator_buddies_system(8, nullptr, nullptr, allocator_with_fit_mode::fit_mode::first_fit);
+    logger* logger_instance = create_logger(std::vector<std::pair<std::string, logger::severity>>(), true,
+        logger::severity::debug | logger::severity::error | logger::severity::trace);
+    allocator *allocator_instance = new allocator_buddies_system(8, nullptr, logger_instance, allocator_with_fit_mode::fit_mode::first_fit);
     
     void *first_block = allocator_instance->allocate(sizeof(unsigned char), 0);
     void *second_block = allocator_instance->allocate(sizeof(unsigned char), 0);
@@ -115,6 +117,7 @@ TEST(falsePositiveTests, test1)
     ASSERT_THROW(new allocator_buddies_system(static_cast<int>(std::floor(std::log2(sizeof(allocator::block_pointer_t) * 2 + 1))) - 1), std::logic_error);
 }
 
+/*
 int main()
 {
     logger* logger_instance = create_logger(std::vector<std::pair<std::string, logger::severity>>(), true,
@@ -133,15 +136,17 @@ int main()
 
     void* f_block = allocator_instance->allocate(sizeof(unsigned char), 1);
 
-    allocator_instance->deallocate(e_block);
-    allocator_instance->deallocate(f_block);
+    allocator_instance->deallocate(a_block);
+
     allocator_instance->deallocate(c_block);
     allocator_instance->deallocate(d_block);
 
-    allocator_instance->deallocate(a_block);
     allocator_instance->deallocate(b_block);
 
-    /*
+    allocator_instance->deallocate(e_block);
+    allocator_instance->deallocate(f_block);
+
+    
     1 and 32
     32 = 16 + 16
 
@@ -151,7 +156,7 @@ int main()
     16 > 9 ... 16 < 17 -> (X)
     -> 1 -> 1 + 9 = 10 -> 10 -> 32
     -> 32 - min alloc.
-    */
+    
 
 
     auto actual_blocks_state = dynamic_cast<allocator_test_utils*>(allocator_instance)->get_blocks_info();
@@ -165,12 +170,13 @@ int main()
     delete allocator_instance;
     delete logger_instance;
 }
+*/
 
-/*int main(
+int main(
     int argc,
     char *argv[])
 {
     testing::InitGoogleTest(&argc, argv);
     
     return RUN_ALL_TESTS();
-}*/
+}

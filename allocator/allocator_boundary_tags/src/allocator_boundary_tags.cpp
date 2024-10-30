@@ -534,7 +534,7 @@ void allocator_boundary_tags::deallocate(
     }
 
     oss.str("");
-    oss << "Memory block state before cleaning: " << at << '\n';
+    oss << "Memory block state before cleaning: " << get_captured_block_data_str(at, captured_block_get_size(at_char_start)) << '\n';
     log_with_guard(oss.str(), logger::severity::debug);
 
     auto memory_space_char_start = reinterpret_cast<unsigned char*>(_trusted_memory) + ALLOCATOR_META_SIZE;

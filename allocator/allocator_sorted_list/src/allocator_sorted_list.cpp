@@ -420,6 +420,10 @@ void allocator_sorted_list::deallocate(
             throw std::runtime_error(oss.str());
         }
 
+        oss.str("");
+        oss << "Memory block state before cleaning: " << get_captured_block_data_str(at, block_get_size(at_char)) << '\n';
+        log_with_guard(oss.str(), logger::severity::debug);
+
         auto current = reinterpret_cast<unsigned char*>(get_first_free_block());
         unsigned char* prev = nullptr;
         if (current != nullptr)

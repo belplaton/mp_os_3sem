@@ -233,7 +233,7 @@ void allocator_buddies_system::deallocate(
     }
 
     oss.str("");
-    oss << "Memory block state before cleaning: " << at << '\n';
+    oss << "Memory block state before cleaning: " << get_captured_block_data_str(at, block_get_size(at_char)) << '\n';
     log_with_guard(oss.str(), logger::severity::debug);
 
     auto at_degree = block_get_degree(at_char);

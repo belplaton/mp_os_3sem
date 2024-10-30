@@ -42,6 +42,8 @@ public:
     virtual std::vector<block_info> get_blocks_info() const noexcept = 0;
 
     std::string get_blocks_info_str(block_info_type block_info_type = block_info_type::both) const noexcept;
+
+    std::string get_captured_block_data_str(void* at, size_t size) const noexcept;
     
 };
 
