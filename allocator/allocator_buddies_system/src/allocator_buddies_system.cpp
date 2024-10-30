@@ -389,14 +389,14 @@ void allocator_buddies_system::free_memory()
 unsigned long long allocator_buddies_system::global_to_local(unsigned char* at_char) const
 {
     auto temp = reinterpret_cast<unsigned long long>(at_char);
-    temp -= reinterpret_cast<unsigned long long>(_trusted_memory);
+    temp -= (reinterpret_cast<unsigned long long>(_trusted_memory) + ALLOCATOR_META_SIZE);
     return temp;
 }
 
 unsigned char* allocator_buddies_system::local_to_global(unsigned long long at_char) const
 {
     auto temp = at_char;
-    temp += reinterpret_cast<unsigned long long>(_trusted_memory);
+    temp += reinterpret_cast<unsigned long long>(_trusted_memory) + ALLOCATOR_META_SIZE;
     return reinterpret_cast<unsigned char*>(temp);
 }
 
