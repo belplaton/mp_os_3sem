@@ -122,7 +122,7 @@ private:
 
     bool try_free_block_split(unsigned char* at_char);
 
-    void block_merge_to_free(unsigned char* at_char, unsigned char* prev, unsigned char* next);
+    unsigned char* block_merge_to_free(unsigned char* at_char, unsigned char* prev, unsigned char* next);
 
 private:
 

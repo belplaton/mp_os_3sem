@@ -241,35 +241,22 @@ void allocator_buddies_system::deallocate(
     auto free_block = block_get_buddie(at_char);
     auto space_degree = get_space_degree();
 
-    if (block_is_free(free_block) && temp_degree < space_degree)
+    if (block_is_free(free_block) && block_get_degree(free_block) == temp_degree && temp_degree < space_degree)
     {
-        auto temp = at_char;
         do
         {
-            temp = free_block < temp ? free_block : temp;
             auto prev = free_block_get_prev(free_block);
             auto next = free_block_get_next(free_block);
 
-            block_set_degree(temp, temp_degree + 1);
-            free_block_set_prev(temp, prev);
-            free_block_set_next(temp, next);
-            if (prev != nullptr)
-            {
-                free_block_set_next(prev, temp);
-            }
-            else
-            {
-                set_first_free_block(temp);
-            }
-
-            if (next != nullptr)
-            {
-                free_block_set_prev(next, temp);
-            }
-
+            auto temp = block_merge_to_free(free_block, prev, next);
             free_block = block_get_buddie(temp);
             temp_degree++;
-        } while (block_is_free(free_block) && temp_degree < space_degree);
+
+            oss.str("");
+            oss << "DEBUG: " << get_blocks_info_str() << "\n";
+            log_with_guard(oss.str(), logger::severity::debug);
+
+        } while (block_is_free(free_block) && block_get_degree(free_block) == temp_degree && temp_degree < space_degree);
     }
     else
     {
@@ -285,6 +272,7 @@ void allocator_buddies_system::deallocate(
             }
 
             prev = current;
+            auto x = block_get_degree(current);
             current = free_block_get_next(current);
         }
 
@@ -335,11 +323,6 @@ void allocator_buddies_system::deallocate(
 
         prev = free_block_get_prev(current);
         temp = block_get_buddie(current);
-        next = free_block_get_next(temp);
-        if (next != nullptr)
-        {
-            free_block_set_prev(next, temp);
-        }
     }
 
     block_set_ptr(current, trusted_memory_char);
@@ -594,13 +577,18 @@ bool allocator_buddies_system::try_free_block_split(unsigned char* at_char)
         free_block_set_next(at_char, buddie);
         free_block_set_prev(buddie, at_char);
         free_block_set_next(buddie, next);
+        if (next != nullptr)
+        {
+            free_block_set_prev(next, buddie);
+        }
+
         return true;
     }
 
     return false;
 }
 
-void allocator_buddies_system::block_merge_to_free(unsigned char* at_char, unsigned char* prev, unsigned char* next)
+unsigned char* allocator_buddies_system::block_merge_to_free(unsigned char* at_char, unsigned char* prev, unsigned char* next)
 {
     auto buddie = block_get_buddie(at_char);
     auto current = buddie < at_char ? buddie : at_char;
@@ -608,6 +596,21 @@ void allocator_buddies_system::block_merge_to_free(unsigned char* at_char, unsig
     block_set_degree(current, degree + 1);
     free_block_set_prev(current, prev);
     free_block_set_next(current, next);
+    if (prev != nullptr)
+    {
+        free_block_set_next(prev, current);
+    }
+    else
+    {
+        set_first_free_block(current);
+    }
+
+    if (next != nullptr)
+    {
+        free_block_set_prev(next, current);
+    }
+
+    return current;
 }
 
 #pragma endregion
@@ -759,8 +762,7 @@ unsigned int constexpr allocator_buddies_system::nearest_power_of_two(unsigned i
 
 unsigned char constexpr allocator_buddies_system::get_degree_bottom_limit()
 {
-    auto degree = nearest_power_of_two(FREE_BLOCK_META_SIZE);
-    return degree;
+    return nearest_power_of_two(FREE_BLOCK_META_SIZE);
 }
 
 #pragma endregion
