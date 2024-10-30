@@ -158,10 +158,6 @@ allocator_buddies_system::allocator_buddies_system(
 
         auto fit_mode = get_fit_mode();
         auto block_size = value_size * values_count;
-        if (block_size + CAPTURED_BLOCK_META_SIZE < FREE_BLOCK_META_SIZE)
-        {
-            block_size = BLOCKS_META_SIZE_DIFF;
-        }
 
         switch (fit_mode)
         {
@@ -230,7 +226,7 @@ void allocator_buddies_system::deallocate(
     {
         if (!try_free_block_split(current))
         {
-            throw std::runtime_error("Something went wrong in allocate_block method.");
+            break;
         }
 
         prev = free_block_get_prev(current);
@@ -255,7 +251,6 @@ void allocator_buddies_system::deallocate(
 
     return current + CAPTURED_BLOCK_META_SIZE;
 }
-
 
 [[nodiscard]] unsigned char* allocator_buddies_system::allocate_first_fit(size_t size)
 {
@@ -389,14 +384,16 @@ void allocator_buddies_system::free_memory()
 unsigned long long allocator_buddies_system::global_to_local(unsigned char* at_char) const
 {
     auto temp = reinterpret_cast<unsigned long long>(at_char);
-    temp -= (reinterpret_cast<unsigned long long>(_trusted_memory) + ALLOCATOR_META_SIZE);
+    auto trusted_char = reinterpret_cast<unsigned char*>(_trusted_memory);
+    temp -= reinterpret_cast<unsigned long long>(trusted_char + ALLOCATOR_META_SIZE);
     return temp;
 }
 
 unsigned char* allocator_buddies_system::local_to_global(unsigned long long at_char) const
 {
     auto temp = at_char;
-    temp += reinterpret_cast<unsigned long long>(_trusted_memory) + ALLOCATOR_META_SIZE;
+    auto trusted_char = reinterpret_cast<unsigned char*>(_trusted_memory);
+    temp += reinterpret_cast<unsigned long long>(trusted_char + ALLOCATOR_META_SIZE);
     return reinterpret_cast<unsigned char*>(temp);
 }
 
