@@ -241,7 +241,7 @@ void allocator_buddies_system::deallocate(
     }
     else
     {
-        set_first_free_block(current);
+        set_first_free_block(next);
     }
     
     if (next != nullptr)
