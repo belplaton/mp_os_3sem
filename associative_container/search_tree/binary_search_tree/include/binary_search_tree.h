@@ -47,7 +47,7 @@ protected:
 
 public:
     
-    // region iterators definition
+    #pragma region iterators definition
     
     struct iterator_data
     {
@@ -369,11 +369,11 @@ public:
         
     };
     
-    // endregion iterators definition
+    #pragma endregion iterators definition
 
 protected:
     
-    // region target operations strategies definition
+    #pragma region target operations strategies definition
     
     enum class insertion_of_existent_key_attempt_strategy
     {
@@ -387,9 +387,9 @@ protected:
         throw_an_exception
     };
     
-    // endregion target operations strategies definition
+    #pragma endregion target operations strategies definition
     
-    // region target operations associated exception types
+    #pragma region target operations associated exception types
     
     class insertion_of_existent_key_attempt_exception final:
         public std::logic_error
@@ -448,9 +448,9 @@ protected:
     
     };
     
-    // endregion target operations associated exception types
+    #pragma endregion target operations associated exception types
     
-    // region template methods definition
+    #pragma region template methods definition
     
     class template_method_basics:
         public logger_guardant
@@ -570,7 +570,7 @@ protected:
         
     };
     
-    // endregion template methods definition
+    #pragma endregion template methods definition
 
 private:
     
@@ -649,7 +649,7 @@ public:
 
 public:
     
-    // region iterators requests definition
+    #pragma region iterators requests definition
     
     prefix_iterator begin_prefix() const noexcept;
     
@@ -699,11 +699,11 @@ public:
     
     postfix_const_reverse_iterator crend_postfix() const noexcept;
     
-    // endregion iterators requests definition
+    #pragma endregion iterators requests definition
 
 protected:
     
-    // region subtree rotations definition
+    #pragma region subtree rotations definition
     
     void small_left_rotation(
         typename binary_search_tree<tkey, tvalue>::node *&subtree_root,
@@ -731,11 +731,11 @@ protected:
         bool at_grandparent_first,
         bool validate = true) const;
     
-    // endregion subtree rotations definition
+#pragma endregion subtree rotations definition
     
 };
 
-// region binary_search_tree<tkey, tvalue>::node methods implementation
+#pragma region binary_search_tree<tkey, tvalue>::node methods implementation
 
 template<
     typename tkey,
@@ -757,11 +757,11 @@ binary_search_tree<tkey, tvalue>::node::node(
     throw not_implemented("template<typename tkey, typename tvalue> binary_search_tree<tkey, tvalue>::node::node(tkey const &, tvalue &&)", "your code should be here...");
 }
 
-// endregion binary_search_tree<tkey, tvalue>::node methods implementation
+#pragma endregion binary_search_tree<tkey, tvalue>::node methods implementation
 
-// region iterators implementation
+#pragma region iterators implementation
 
-// region iterator data implementation
+#pragma region iterator data implementation
 
 template<
     typename tkey,
@@ -777,9 +777,9 @@ binary_search_tree<tkey, tvalue>::iterator_data::iterator_data(
     throw not_implemented("template<typename tkey, typename tvalue> binary_search_tree<tkey, tvalue>::iterator_data::iterator_data(unsigned int, tkey const &, tvalue const &)", "your code should be here...");
 }
 
-// endregion iterator data implementation
+#pragma endregion iterator data implementation
 
-// region prefix_iterator implementation
+#pragma region prefix_iterator implementation
 
 template<
     typename tkey,
@@ -833,9 +833,9 @@ typename binary_search_tree<tkey, tvalue>::iterator_data *binary_search_tree<tke
     throw not_implemented("template<typename tkey, typename tvalue> typename binary_search_tree<tkey, tvalue>::iterator_data *binary_search_tree<tkey, tvalue>::prefix_iterator::operator*() const", "your code should be here...");
 }
 
-// endregion prefix_iterator implementation
+#pragma endregion prefix_iterator implementation
 
-// region prefix_const_iterator implementation
+#pragma region prefix_const_iterator implementation
 
 template<
     typename tkey,
@@ -889,9 +889,9 @@ typename binary_search_tree<tkey, tvalue>::iterator_data const *binary_search_tr
     throw not_implemented("template<typename tkey, typename tvalue> typename binary_search_tree<tkey, tvalue>::iterator_data const *binary_search_tree<tkey, tvalue>::prefix_const_iterator::operator*() const", "your code should be here...");
 }
 
-// endregion prefix_const_iterator implementation
+#pragma endregion prefix_const_iterator implementation
 
-// region prefix_reverse_iterator implementation
+#pragma region prefix_reverse_iterator implementation
 
 template<
     typename tkey,
@@ -945,9 +945,9 @@ typename binary_search_tree<tkey, tvalue>::iterator_data *binary_search_tree<tke
     throw not_implemented("template<typename tkey, typename tvalue> typename binary_search_tree<tkey, tvalue>::iterator_data *binary_search_tree<tkey, tvalue>::prefix_reverse_iterator::operator*() const", "your code should be here...");
 }
 
-// endregion prefix_reverse_iterator implementation
+#pragma endregion prefix_reverse_iterator implementation
 
-// region prefix_const_reverse_iterator implementation
+#pragma region prefix_const_reverse_iterator implementation
 
 template<
     typename tkey,
@@ -1001,9 +1001,9 @@ typename binary_search_tree<tkey, tvalue>::iterator_data const *binary_search_tr
     throw not_implemented("template<typename tkey, typename tvalue> typename binary_search_tree<tkey, tvalue>::iterator_data const *binary_search_tree<tkey, tvalue>::prefix_const_reverse_iterator::operator*() const", "your code should be here...");
 }
 
-// endregion prefix_const_reverse_iterator implementation
+#pragma endregion prefix_const_reverse_iterator implementation
 
-// region infix_iterator implementation
+#pragma region infix_iterator implementation
 
 template<
     typename tkey,
@@ -1057,9 +1057,9 @@ typename binary_search_tree<tkey, tvalue>::iterator_data *binary_search_tree<tke
     throw not_implemented("template<typename tkey, typename tvalue> typename binary_search_tree<tkey, tvalue>::iterator_data *binary_search_tree<tkey, tvalue>::infix_iterator::operator*() const", "your code should be here...");
 }
 
-// endregion infix_iterator implementation
+#pragma endregion infix_iterator implementation
 
-// region infix_const_iterator implementation
+#pragma region infix_const_iterator implementation
 
 template<
     typename tkey,
@@ -1113,9 +1113,9 @@ typename binary_search_tree<tkey, tvalue>::iterator_data const *binary_search_tr
     throw not_implemented("template<typename tkey, typename tvalue> typename binary_search_tree<tkey, tvalue>::iterator_data const *binary_search_tree<tkey, tvalue>::infix_const_iterator::operator*() const", "your code should be here...");
 }
 
-// endregion infix_const_iterator implementation
+#pragma endregion infix_const_iterator implementation
 
-// region infix_reverse_iterator implementation
+#pragma region infix_reverse_iterator implementation
 
 template<
     typename tkey,
@@ -1169,9 +1169,9 @@ typename binary_search_tree<tkey, tvalue>::iterator_data *binary_search_tree<tke
     throw not_implemented("template<typename tkey, typename tvalue> typename binary_search_tree<tkey, tvalue>::iterator_data *binary_search_tree<tkey, tvalue>::infix_reverse_iterator::operator*() const", "your code should be here...");
 }
 
-// endregion infix_reverse_iterator implementation
+#pragma endregion infix_reverse_iterator implementation
 
-// region infix_const_reverse_iterator implementation
+#pragma region infix_const_reverse_iterator implementation
 
 template<
     typename tkey,
@@ -1225,9 +1225,9 @@ typename binary_search_tree<tkey, tvalue>::iterator_data const *binary_search_tr
     throw not_implemented("template<typename tkey, typename tvalue> typename binary_search_tree<tkey, tvalue>::iterator_data const *binary_search_tree<tkey, tvalue>::infix_const_reverse_iterator::operator*() const", "your code should be here...");
 }
 
-// endregion infix_const_reverse_iterator implementation
+#pragma endregion infix_const_reverse_iterator implementation
 
-// region postfix_iterator implementation
+#pragma region postfix_iterator implementation
 
 template<
     typename tkey,
@@ -1281,9 +1281,9 @@ typename binary_search_tree<tkey, tvalue>::iterator_data *binary_search_tree<tke
     throw not_implemented("template<typename tkey, typename tvalue> typename binary_search_tree<tkey, tvalue>::iterator_data *binary_search_tree<tkey, tvalue>::postfix_iterator::operator*() const", "your code should be here...");
 }
 
-// endregion postfix_iterator implementation
+#pragma endregion postfix_iterator implementation
 
-// region postfix_const_iterator implementation
+#pragma region postfix_const_iterator implementation
 
 template<
     typename tkey,
@@ -1337,9 +1337,9 @@ typename binary_search_tree<tkey, tvalue>::iterator_data const *binary_search_tr
     throw not_implemented("template<typename tkey, typename tvalue> typename binary_search_tree<tkey, tvalue>::iterator_data const *binary_search_tree<tkey, tvalue>::postfix_const_iterator::operator*() const", "your code should be here...");
 }
 
-// endregion postfix_const_iterator implementation
+#pragma endregion postfix_const_iterator implementation
 
-// region postfix_reverse_iterator implementation
+#pragma region postfix_reverse_iterator implementation
 
 template<
     typename tkey,
@@ -1393,9 +1393,9 @@ typename binary_search_tree<tkey, tvalue>::iterator_data *binary_search_tree<tke
     throw not_implemented("template<typename tkey, typename tvalue> typename binary_search_tree<tkey, tvalue>::iterator_data *binary_search_tree<tkey, tvalue>::postfix_reverse_iterator::operator*() const", "your code should be here...");
 }
 
-// endregion postfix_reverse_iterator implementation
+#pragma endregion postfix_reverse_iterator implementation
 
-// region postfix_const_reverse_iterator implementation
+#pragma region postfix_const_reverse_iterator implementation
 
 template<
     typename tkey,
@@ -1449,11 +1449,11 @@ typename binary_search_tree<tkey, tvalue>::iterator_data const *binary_search_tr
     throw not_implemented("template<typename tkey, typename tvalue> typename binary_search_tree<tkey, tvalue>::iterator_data const *binary_search_tree<tkey, tvalue>::postfix_const_reverse_iterator::operator*() const", "your code should be here...");
 }
 
-// endregion postfix_const_reverse_iterator implementation
+#pragma endregion postfix_const_reverse_iterator implementation
 
-// endregion iterators implementation
+#pragma endregion iterators implementation
 
-// region target operations associated exception types implementation
+#pragma region target operations associated exception types implementation
 
 template<
     typename tkey,
@@ -1509,11 +1509,11 @@ tkey const &binary_search_tree<tkey, tvalue>::disposal_of_nonexistent_key_attemp
     return _key;
 }
 
-// endregion target operations associated exception types implementation
+#pragma endregion target operations associated exception types implementation
 
-// region template methods implementation
+#pragma region template methods implementation
 
-// region binary_search_tree<tkey, tvalue>::template_method_basics implementation
+#pragma region binary_search_tree<tkey, tvalue>::template_method_basics implementation
 
 template<
     typename tkey,
@@ -1532,9 +1532,9 @@ template<
     throw not_implemented("template<typename tkey, typename tvalue> [[nodiscard]] inline logger *binary_search_tree<tkey, tvalue>::template_method_basics::get_logger() const noexcept", "your code should be here...");
 }
 
-// endregion binary_search_tree<tkey, tvalue>::template_method_basics implementation
+#pragma endregion binary_search_tree<tkey, tvalue>::template_method_basics implementation
 
-// region search_tree<tkey, tvalue>::insertion_template_method implementation
+#pragma region search_tree<tkey, tvalue>::insertion_template_method implementation
 
 template<
     typename tkey,
@@ -1584,9 +1584,9 @@ allocator *binary_search_tree<tkey, tvalue>::insertion_template_method::get_allo
     throw not_implemented("template<typename tkey, typename tvalue> allocator *binary_search_tree<tkey, tvalue>::insertion_template_method::get_allocator() const noexcept", "your code should be here...");
 }
 
-// endregion search_tree<tkey, tvalue>::insertion_template_method implementation
+#pragma endregion search_tree<tkey, tvalue>::insertion_template_method implementation
 
-// region search_tree<tkey, tvalue>::obtaining_template_method implementation
+#pragma region search_tree<tkey, tvalue>::obtaining_template_method implementation
 
 template<
     typename tkey,
@@ -1607,9 +1607,9 @@ tvalue const &binary_search_tree<tkey, tvalue>::obtaining_template_method::obtai
     throw not_implemented("template<typename tkey, typename tvalue> tvalue const &binary_search_tree<tkey, tvalue>::obtaining_template_method::obtain(tkey const &)", "your code should be here...");
 }
 
-// endregion search_tree<tkey, tvalue>::obtaining_template_method implementation
+#pragma endregion search_tree<tkey, tvalue>::obtaining_template_method implementation
 
-// region search_tree<tkey, tvalue>::disposal_template_method implementation
+#pragma region search_tree<tkey, tvalue>::disposal_template_method implementation
 
 template<
     typename tkey,
@@ -1648,11 +1648,11 @@ template<
     throw not_implemented("template<typename tkey, typename tvalue> [[nodiscard]] inline allocator *binary_search_tree<tkey, tvalue>::disposal_template_method::get_allocator() const noexcept", "your code should be here...");
 }
 
-// endregion search_tree<tkey, tvalue>::disposal_template_method implementation
+#pragma endregion search_tree<tkey, tvalue>::disposal_template_method implementation
 
-// endregion template methods
+#pragma endregion template methods
 
-// region construction, assignment, destruction implementation
+#pragma region construction, assignment, destruction implementation
 
 template<
     typename tkey,
@@ -1736,9 +1736,9 @@ binary_search_tree<tkey, tvalue>::~binary_search_tree()
     throw not_implemented("template<typename tkey, typename tvalue> binary_search_tree<tkey, tvalue>::~binary_search_tree()", "your code should be here...");
 }
 
-// endregion construction, assignment, destruction implementation
+#pragma endregion construction, assignment, destruction implementation
 
-// region associative_container<tkey, tvalue> contract implementation
+#pragma region associative_container<tkey, tvalue> contract implementation
 
 template<
     typename tkey,
@@ -1790,7 +1790,7 @@ tvalue binary_search_tree<tkey, tvalue>::dispose(
     return _disposal_template->dispose(key);
 }
 
-// endregion associative_containers contract implementations
+#pragma endregion associative_containers contract implementations
 
 template<
     typename tkey,
@@ -1810,7 +1810,7 @@ void binary_search_tree<tkey, tvalue>::set_removal_strategy(
     throw not_implemented("template<typename tkey, typename tvalue> void binary_search_tree<tkey, tvalue>::set_removal_strategy(typename binary_search_tree<tkey, tvalue>::disposal_of_nonexistent_key_strategy) noexcept", "your code should be here...");
 }
 
-// region iterators requesting implementation
+#pragma region iterators requesting implementation
 
 template<
     typename tkey,
@@ -2005,9 +2005,9 @@ typename binary_search_tree<tkey, tvalue>::postfix_const_reverse_iterator binary
 }
 
 
-// endregion iterators request implementation
+#pragma endregion iterators request implementation
 
-// region subtree rotations implementation
+#pragma region subtree rotations implementation
 
 template<
     typename tkey,
@@ -2071,6 +2071,6 @@ void binary_search_tree<tkey, tvalue>::double_right_rotation(
     throw not_implemented("template<typename tkey, typename tvalue> void binary_search_tree<tkey, tvalue>::double_right_rotation(binary_search_tree<tkey, tvalue>::node *&, bool, bool) const", "your code should be here...");
 }
 
-// endregion subtree rotations implementation
+#pragma endregion subtree rotations implementation
 
 #endif //MATH_PRACTICE_AND_OPERATING_SYSTEMS_BINARY_SEARCH_TREE_H
