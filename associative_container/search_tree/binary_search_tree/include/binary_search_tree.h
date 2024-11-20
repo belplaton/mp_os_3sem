@@ -1871,19 +1871,9 @@ template<
     typename tvalue>
 void binary_search_tree<tkey, tvalue>::insert(
     tkey const &key,
-    tvalue const &value)
-{
-    _insertion_template->insert(key, value);
-}
-
-template<
-    typename tkey,
-    typename tvalue>
-void binary_search_tree<tkey, tvalue>::insert(
-    tkey const &key,
     tvalue &&value)
 {
-    _insertion_template->insert(key, std::move(value));
+    _insertion_template->insert(key, std::forward(value));
 }
 
 template<
