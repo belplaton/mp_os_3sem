@@ -22,27 +22,6 @@ class search_tree:
     protected logger_guardant
 {
 
-public:
-    // __attribute__((unused)) 
-    struct common_node
-    {
-    
-    public:
-        
-        typename associative_container<tkey, tvalue>::key_value_pair *keys_and_values;
-        
-        common_node **subtrees;
-        
-        size_t virtual_size;
-    
-    public:
-    
-        common_node();
-        
-        virtual ~common_node() noexcept;
-        
-    };
-
 protected:
     
     std::function<int(tkey const &, tkey const &)> _keys_comparer;
@@ -76,26 +55,6 @@ protected:
     
 };
 
-//region search_tree<tkey, tvalue>::node implementation
-
-template<
-    typename tkey,
-    typename tvalue>
-search_tree<tkey, tvalue>::common_node::common_node()
-{
-    throw not_implemented("template<typename tkey, typename tvalue> search_tree<tkey, tvalue>::common_node::common_node()", "your code should be here...");
-}
-
-template<
-    typename tkey,
-    typename tvalue>
-search_tree<tkey, tvalue>::common_node::~common_node() noexcept
-{
-    throw not_implemented("template<typename tkey, typename tvalue> search_tree<tkey, tvalue>::common_node::~common_node() noexcept", "your code should be here...");
-}
-
-// endregion search_tree<tkey, tvalue>::node implementation
-
 template<
     typename tkey,
     typename tvalue>
@@ -107,6 +66,7 @@ search_tree<tkey, tvalue>::search_tree(
     _logger(logger),
     _allocator(allocator)
 {
+    debug_with_guard("Called search_tree<tkey, tvalue>::search_tree(std::function<int(tkey const &, tkey const &)>, logger *, allocator *)");
     //throw not_implemented("template<typename tkey, typename tvalue> search_tree<tkey, tvalue>::search_tree(std::function<int(tkey const &, tkey const &)>, logger *, allocator *)", "your code should be here...");
 }
 
