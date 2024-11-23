@@ -43,7 +43,7 @@ protected:
 
         node* copy_node_hierarchy(node* other);
         
-        void clear_node_hierarchy(node* other);
+        void clear_node_hierarchy(node** other);
 
     };
 
@@ -2410,7 +2410,7 @@ std::stack<typename binary_search_tree<tkey, tvalue>::node**> binary_search_tree
     obtained_path.push(iter);
     while (*iter != nullptr)
     {
-        auto cmp_res = _tree->_keys_comparer(key_to_obtain_path_to);
+        auto cmp_res = _tree->_keys_comparer((*iter)->key, key_to_obtain_path_to);
         if (cmp_res == 0)
         {
             break;
@@ -2790,6 +2790,7 @@ binary_search_tree<tkey, tvalue> &binary_search_tree<tkey, tvalue>::operator=(
 {
     if (this != &other)
     {
+        clear();
         _keys_comparer = std::move(other._keys_comparer);
         _allocator = std::move(other._allocator);
         _logger = std::move(other._logger);
@@ -2855,7 +2856,33 @@ std::vector<typename associative_container<tkey, tvalue>::key_value_pair> binary
     bool lower_bound_inclusive,
     bool upper_bound_inclusive)
 {
-    throw not_implemented("template<typename tkey, typename tvalue> std::vector<typename associative_container<tkey, tvalue>::key_value_pair> binary_search_tree<tkey, tvalue>::obtain_between(tkey const &, tkey const &, bool, bool)", "your code should be here...");
+    std::vector<typename associative_container<tkey, tvalue>::key_value_pair> result();
+    infix_iterator it = begin_infix();
+    infix_iterator it_end = end_infix();
+
+    while (it != it_end)
+    {
+        auto current_key = (*it)->key;
+        auto lower_cmp_res = _keys_comparer(current_key, lower_bound);
+        auto upper_cmp_res = _keys_comparer(current_key, upper_bound);
+
+        auto is_lower_bound_match = lower_bound_inclusive ? lower_cmp_res >= 0 : lower_cmp_res > 0;
+        auto is_upper_bound_match = upper_bound_inclusive ? upper_cmp_res <= 0 : upper_cmp_res < 0;
+
+        if (is_lower_bound_match && is_upper_bound_match)
+        {
+            result.push_back({ current_key, (*it)->value });
+        }
+        else if (!is_upper_bound_match)
+        {
+            break;
+        }
+
+        ++it;
+    }
+
+    return result;
+    //throw not_implemented("template<typename tkey, typename tvalue> std::vector<typename associative_container<tkey, tvalue>::key_value_pair> binary_search_tree<tkey, tvalue>::obtain_between(tkey const &, tkey const &, bool, bool)", "your code should be here...");
 }
 
 template<
