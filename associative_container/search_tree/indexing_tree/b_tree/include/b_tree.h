@@ -56,10 +56,6 @@ public:
 
     void insert(
         tkey const &key,
-        tvalue const &value) override;
-
-    void insert(
-        tkey const &key,
         tvalue &&value) override;
 
     tvalue const &obtain(
@@ -67,6 +63,8 @@ public:
 
     tvalue dispose(
         tkey const &key) override;
+
+    void clear() override;
 
     std::vector<typename associative_container<tkey, tvalue>::key_value_pair> obtain_between(
         tkey const &lower_bound,
@@ -199,16 +197,6 @@ template<
     typename tvalue>
 void b_tree<tkey, tvalue>::insert(
     tkey const &key,
-    tvalue const &value)
-{
-    throw not_implemented("template<typename tkey, typename tvalue> void b_tree<tkey, tvalue>::insert(tkey const &, tvalue const &)", "your code should be here...");
-}
-
-template<
-    typename tkey,
-    typename tvalue>
-void b_tree<tkey, tvalue>::insert(
-    tkey const &key,
     tvalue &&value)
 {
     throw not_implemented("template<typename tkey, typename tvalue> void b_tree<tkey, tvalue>::insert(tkey const &, tvalue &&)", "your code should be here...");
@@ -217,19 +205,28 @@ void b_tree<tkey, tvalue>::insert(
 template<
     typename tkey,
     typename tvalue>
-tvalue const &b_tree<tkey, tvalue>::obtain(
-    tkey const &key)
+tvalue const& b_tree<tkey, tvalue>::obtain(
+    tkey const& key)
 {
     throw not_implemented("template<typename tkey, typename tvalue> tvalue const &b_tree<tkey, tvalue>::obtain(tkey const &)", "your code should be here...");
+
 }
 
 template<
     typename tkey,
     typename tvalue>
 tvalue b_tree<tkey, tvalue>::dispose(
-    tkey const &key)
+    tkey const& key)
 {
     throw not_implemented("template<typename tkey, typename tvalue> tvalue b_tree<tkey, tvalue>::dispose(tkey const &)", "your code should be here...");
+}
+
+template<
+    typename tkey,
+    typename tvalue>
+void b_tree<tkey, tvalue>::clear()
+{
+    throw not_implemented("template<typename tkey, typename tvalue> b_tree<tkey, tvalue>::clear()", "your code should be here...");
 }
 
 template<

@@ -58,6 +58,8 @@ public:
     
     virtual tvalue dispose(
         tkey const &key) = 0;
+
+    virtual void clear() = 0;
     
 };
 

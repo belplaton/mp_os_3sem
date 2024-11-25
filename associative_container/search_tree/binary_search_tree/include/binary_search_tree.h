@@ -11,7 +11,7 @@
 #include <not_implemented.h>
 #include <search_tree.h>
 #include <exception>
-
+#include <utility>
 
 template<
     typename tkey,
@@ -41,9 +41,9 @@ protected:
             tkey const &key,
             tvalue &&value);
 
-        node* copy_node_hierarchy(node* other);
+        static node* copy_node_hierarchy(node* other);
         
-        void clear_node_hierarchy(node** other);
+        static void clear_node_hierarchy(node** other);
 
     };
 
@@ -841,34 +841,40 @@ binary_search_tree<tkey, tvalue>::node::node(
      //throw not_implemented("template<typename tkey, typename tvalue> binary_search_tree<tkey, tvalue>::node::node(tkey const &, tvalue &&)", "your code should be here...");
 }
 
-template<typename tkey, typename tvalue>
-inline node* binary_search_tree<tkey, tvalue>::node::copy_node_hierarchy(node* other)
+template<
+    typename tkey,
+    typename tvalue>
+typename binary_search_tree<tkey, tvalue>::node* binary_search_tree<tkey, tvalue>::node::copy_node_hierarchy(
+    typename binary_search_tree<tkey, tvalue>::node* other)
 {
     if (other == nullptr)
     {
         return nullptr;
     }
 
-    auto* new_node = new node(other->key, other->value);
-    new_node->left_subtree = copy_node(root->left_subtree);
-    new_node->right_subtree = copy_node(root->right_subtree);
+    auto* new_node = new typename binary_search_tree<tkey, tvalue>::node(other->key, other->value);
+    new_node->left_subtree = binary_search_tree<tkey, tvalue>::node::copy_node_hierarchy(root->left_subtree);
+    new_node->right_subtree = binary_search_tree<tkey, tvalue>::node::copy_node_hierarchy(root->right_subtree);
     return new_node;
 }
 
-template<typename tkey, typename tvalue>
-inline void binary_search_tree<tkey, tvalue>::node::clear_node_hierarchy(node** other)
+template<
+    typename tkey,
+    typename tvalue>
+void binary_search_tree<tkey, tvalue>::node::clear_node_hierarchy(
+    binary_search_tree<tkey, tvalue>::node** other)
 {
     if (other == nullptr || *other == nullptr)
     {
         return;
     }
 
-    std::stack<node*> nodes_to_delete;
+    std::stack<typename binary_search_tree<tkey, tvalue>::node*> nodes_to_delete;
     nodes_to_delete.push(*other);
 
     while (!nodes_to_delete.empty())
     {
-        node* current = nodes_to_delete.top();
+        auto* current = nodes_to_delete.top();
         nodes_to_delete.pop();
 
         if (current->left_subtree)
@@ -1133,7 +1139,7 @@ template<
     typename tvalue>
 typename binary_search_tree<tkey, tvalue>::iterator_data const *binary_search_tree<tkey, tvalue>::prefix_const_iterator::operator*() const
 {
-    return current_data
+    return current_data;
     //throw not_implemented("template<typename tkey, typename tvalue> typename binary_search_tree<tkey, tvalue>::iterator_data const *binary_search_tree<tkey, tvalue>::prefix_const_iterator::operator*() const", "your code should be here...");
 }
 
@@ -2052,7 +2058,7 @@ binary_search_tree<tkey, tvalue>::postfix_const_iterator::postfix_const_iterator
 template<
     typename tkey,
     typename tvalue>
-binary_search_tree<tkey, tvalue>::postfix_const_iterator::postfix_const_iterator()
+binary_search_tree<tkey, tvalue>::postfix_const_iterator::~postfix_const_iterator()
 {
     delete current_data;
 }
@@ -2156,7 +2162,7 @@ binary_search_tree<tkey, tvalue>::postfix_reverse_iterator::postfix_reverse_iter
 template<
     typename tkey,
     typename tvalue>
-binary_search_tree<tkey, tvalue>::postfix_reverse_iterator::postfix_reverse_iterator()
+binary_search_tree<tkey, tvalue>::postfix_reverse_iterator::~postfix_reverse_iterator()
 {
     delete current_data;
 }
@@ -2260,7 +2266,7 @@ binary_search_tree<tkey, tvalue>::postfix_const_reverse_iterator::postfix_const_
 template<
     typename tkey,
     typename tvalue>
-binary_search_tree<tkey, tvalue>::postfix_const_reverse_iterator::postfix_const_reverse_iterator()
+binary_search_tree<tkey, tvalue>::postfix_const_reverse_iterator::~postfix_const_reverse_iterator()
 {
     delete current_data;
 }
@@ -2458,11 +2464,9 @@ void binary_search_tree<tkey, tvalue>::insertion_template_method::insert(
     tkey const &key,
     tvalue &&value)
 {
-    std::stack<typename binary_search_tree<tkey, tvalue>::node**> path_to_node_with_key =
-        reinterpret_cast<typename binary_search_tree<tkey, tvalue>::template_method_basics>(this)
-        .obtain_path(key);
+    std::stack<typename binary_search_tree<tkey, tvalue>::node**> path_to_node_with_key = this->obtain_path(key);
 
-    auto** top = path_to_node_with_key->top();
+    auto** top = path_to_node_with_key.top();
     if (top != nullptr)
     {
         switch (_insertion_strategy)
@@ -2477,7 +2481,7 @@ void binary_search_tree<tkey, tvalue>::insertion_template_method::insert(
     else
     {
         *top = reinterpret_cast<typename binary_search_tree<tkey, tvalue>::node*>(allocate_with_guard(obtain_node_size()));
-        construct_node(*top, key, std::forward<tvalue &&>(tvalue));
+        construct_node(*top, key, std::forward<tvalue&&>(value));
         // TODO: launch balance operation
     }
 
@@ -2498,9 +2502,9 @@ template<
     typename tkey,
     typename tvalue>
 typename binary_search_tree<tkey, tvalue>::insertion_of_existent_key_attempt_strategy
-binary_search_tree<tkey, tvalue>::insertion_template_method::get_insertion_strategy()
+binary_search_tree<tkey, tvalue>::insertion_template_method::get_insertion_strategy() noexcept
 {
-    return _disposal_strategy;
+    return _insertion_strategy;
 }
 
 template<
@@ -2551,9 +2555,7 @@ template<
 tvalue const &binary_search_tree<tkey, tvalue>::obtaining_template_method::obtain(
     tkey const &key)
 {
-    std::stack<typename binary_search_tree<tkey, tvalue>::node**> path_to_node_with_key =
-        reinterpret_cast<typename binary_search_tree<tkey, tvalue>::template_method_basics>(this)
-        .obtain_path(key);
+    std::stack<typename binary_search_tree<tkey, tvalue>::node**> path_to_node_with_key = this->obtain_path(key);
 
     auto** top = path_to_node_with_key.top();
     if (top == nullptr)
@@ -2562,7 +2564,7 @@ tvalue const &binary_search_tree<tkey, tvalue>::obtaining_template_method::obtai
     }
     else
     {
-        return **top;
+        return (*top)->value;
     }
 
     //throw not_implemented("template<typename tkey, typename tvalue> tvalue const &binary_search_tree<tkey, tvalue>::obtaining_template_method::obtain(tkey const &)", "your code should be here...");
@@ -2590,12 +2592,10 @@ template<
 tvalue binary_search_tree<tkey, tvalue>::disposal_template_method::dispose(
     tkey const &key)
 {
-    std::stack<typename binary_search_tree<tkey, tvalue>::node**> path_to_node_with_key =
-        reinterpret_cast<typename binary_search_tree<tkey, tvalue>::template_method_basics>(this)
-        .obtain_path(key);
+    std::stack<typename binary_search_tree<tkey, tvalue>::node**> path_to_node_with_key = this->obtain_path(key);
 
-    auto** top = path_to_node_with_key->top();
-    if (top == nullptr)
+    auto** current = path_to_node_with_key.top();
+    if (current == nullptr)
     {
         switch (_disposal_strategy)
         {
@@ -2621,7 +2621,7 @@ tvalue binary_search_tree<tkey, tvalue>::disposal_template_method::dispose(
         else
         {
             auto** smallest = &node_to_remove->right_subtree;
-            node* parent_of_smallest = nullptr;
+            typename binary_search_tree<tkey, tvalue>::node* parent_of_smallest = nullptr;
 
             while ((*smallest)->left_subtree != nullptr)
             {
@@ -2666,7 +2666,7 @@ template<
     typename tkey,
     typename tvalue>
 typename binary_search_tree<tkey, tvalue>::disposal_of_nonexistent_key_attempt_strategy 
-binary_search_tree<tkey, tvalue>::disposal_template_method::get_disposal_strategy()
+binary_search_tree<tkey, tvalue>::disposal_template_method::get_disposal_strategy() noexcept
 {
     return _disposal_strategy;
 }
@@ -2748,17 +2748,13 @@ template<
     typename tvalue>
 binary_search_tree<tkey, tvalue>::binary_search_tree(
     binary_search_tree<tkey, tvalue> &&other) noexcept :
-    _keys_comparer(std::move(other._keys_comparer)),
-    _allocator(std::move(other._allocator)),
-    _logger(std::move(other._logger)),
+    search_tree<tkey, tvalue>(std::move(other._keys_comparer), std::move(other.get_logger()), std::move(other.get_allocator())),
     _insertion_template(std::move(other._insertion_template)),
     _obtaining_template(std::move(other._obtaining_template)),
     _disposal_template(std::move(other._disposal_template)),
     _root(std::move(other._root))
 {
     other._keys_comparer = nullptr;
-    other._allocator = nullptr;
-    other._logger = nullptr;
     other._insertion_template = nullptr;
     other._obtaining_template = nullptr;
     other._disposal_template = nullptr;
@@ -2835,7 +2831,7 @@ void binary_search_tree<tkey, tvalue>::insert(
     tkey const &key,
     tvalue &&value)
 {
-    _insertion_template->insert(key, std::forward(value));
+    _insertion_template->insert(key, std::forward<tvalue&&>(value));
 }
 
 template<
@@ -2847,16 +2843,15 @@ tvalue const &binary_search_tree<tkey, tvalue>::obtain(
     return _obtaining_template->obtain(key);
 }
 
-template<
-    typename tkey,
-    typename tvalue>
-std::vector<typename associative_container<tkey, tvalue>::key_value_pair> binary_search_tree<tkey, tvalue>::obtain_between(
-    tkey const &lower_bound,
-    tkey const &upper_bound,
+template <typename tkey, typename tvalue>
+std::vector<typename associative_container<tkey, tvalue>::key_value_pair>
+binary_search_tree<tkey, tvalue>::obtain_between(
+    const tkey& lower_bound,
+    const tkey& upper_bound,
     bool lower_bound_inclusive,
     bool upper_bound_inclusive)
 {
-    std::vector<typename associative_container<tkey, tvalue>::key_value_pair> result();
+    auto result = std::vector<typename associative_container<tkey, tvalue>::key_value_pair>();
     infix_iterator it = begin_infix();
     infix_iterator it_end = end_infix();
 
@@ -2882,7 +2877,6 @@ std::vector<typename associative_container<tkey, tvalue>::key_value_pair> binary
     }
 
     return result;
-    //throw not_implemented("template<typename tkey, typename tvalue> std::vector<typename associative_container<tkey, tvalue>::key_value_pair> binary_search_tree<tkey, tvalue>::obtain_between(tkey const &, tkey const &, bool, bool)", "your code should be here...");
 }
 
 template<
@@ -2897,9 +2891,9 @@ tvalue binary_search_tree<tkey, tvalue>::dispose(
 template<
     typename tkey,
     typename tvalue>
-tvalue binary_search_tree<tkey, tvalue>::clear()
+void binary_search_tree<tkey, tvalue>::clear()
 {
-    clear_node_hierarchy(&_root);
+    binary_search_tree<tkey, tvalue>::node::clear_node_hierarchy(&_root);
 }
 
 
