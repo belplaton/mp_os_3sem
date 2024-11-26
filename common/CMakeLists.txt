@@ -4,7 +4,7 @@ project(mp_os_cmmn)
 add_library(
         mp_os_cmmn
         src/not_implemented.cpp
-        src/operation_not_supported.cpp)
+        src/operation_not_supported.cpp "include/sort.h")
 target_include_directories(
         mp_os_cmmn
         PUBLIC
