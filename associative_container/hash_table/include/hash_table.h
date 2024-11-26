@@ -27,6 +27,8 @@ public:
     tvalue dispose(
         tkey const &key) override;
 
+    void clear() override;
+
 };
 
 template<
@@ -62,9 +64,17 @@ template<
     typename tkey,
     typename tvalue>
 tvalue hash_table<tkey, tvalue>::dispose(
-    tkey const &key)
+    tkey const& key)
 {
     throw not_implemented("template<typename tkey, typename tvalue> tvalue hash_table<tkey, tvalue>::dispose(tkey const &)", "your code should be here...");
+}
+
+template<
+    typename tkey,
+    typename tvalue>
+void hash_table<tkey, tvalue>::clear()
+{
+    throw not_implemented("template<typename tkey, typename tvalue> void hash_table<tkey, tvalue>::clear()", "your code should be here...");
 }
 
 #endif //MP_OS_WORKBENCH_HASH_TABLE_H

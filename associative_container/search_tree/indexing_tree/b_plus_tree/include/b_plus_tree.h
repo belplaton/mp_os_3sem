@@ -2,6 +2,7 @@
 #define MATH_PRACTICE_AND_OPERATING_SYSTEMS_TEMPLATE_REPO_B_PLUS_TREE_H
 
 #include <search_tree.h>
+#include <tuple>
 
 template<
     typename tkey,
@@ -67,6 +68,8 @@ public:
 
     tvalue dispose(
         tkey const &key) override;
+
+    void clear() override;
 
     std::vector<typename associative_container<tkey, tvalue>::key_value_pair> obtain_between(
         tkey const &lower_bound,
@@ -230,6 +233,14 @@ tvalue b_plus_tree<tkey, tvalue>::dispose(
     tkey const &key)
 {
     throw not_implemented("template<typename tkey, typename tvalue> tvalue b_plus_tree<tkey, tvalue>::dispose(tkey const &)", "your code should be here...");
+}
+
+template<
+    typename tkey,
+    typename tvalue>
+void b_plus_tree<tkey, tvalue>::clear()
+{
+    throw not_implemented("template<typename tkey, typename tvalue> void b_plus_tree<tkey, tvalue>::clear()", "your code should be here...");
 }
 
 template<

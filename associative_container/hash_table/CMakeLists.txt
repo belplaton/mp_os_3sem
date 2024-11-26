@@ -28,9 +28,9 @@ target_link_libraries(
 set_target_properties(
         mp_os_assctv_cntnr_hsh_tbl PROPERTIES
         VERSION 1.0
+        DESCRIPTION "hash table implementation library"
         LANGUAGES CXX
         LINKER_LANGUAGE CXX
-        CXX_STANDARD 14
+        CXX_STANDARD 20
         CXX_STANDARD_REQUIRED ON
-        CXX_EXTENSIONS OFF
-        DESCRIPTION "hash table implementation library")
+        CXX_EXTENSIONS OFF)
