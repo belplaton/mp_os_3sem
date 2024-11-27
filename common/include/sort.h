@@ -5,7 +5,6 @@
 #include <algorithm>
 #include <cmath>
 
-
 template<typename T>
 class sort_strategy 
 
@@ -195,6 +194,127 @@ public:
     {
         std::vector<T> res(data);
         qsort(data, 0, res.size() - 1, cmp);
+        return res;
+    }
+};
+
+template<typename T>
+class heap_sort final : public sort_strategy<T>
+{
+
+private:
+
+    void heapify(std::vector<T>& data, int n, int i, std::function<bool(T const&, T const&)> const& cmp) const
+    {
+        auto root = i;
+        auto left = 2 * i + 1;
+        auto right = 2 * i + 2;
+
+        if (left < n && cmp(data[root], data[left]))
+        {
+            root = left;
+        }
+
+        if (right < n && cmp(data[root], data[right]))
+        {
+            root = right;
+        }
+
+        if (root != i)
+        {
+            std::swap(data[i], data[root]);
+            heapify(data, n, root, cmp);
+        }
+    }
+
+public:
+
+    heap_sort() = default;
+
+    ~heap_sort() override = default;
+
+    std::vector<T> sort(std::vector<T> const& data, std::function<bool(T const&, T const&)> const& cmp) const override
+    {
+        std::vector<T> res(data);
+        for (auto i = data.size() / 2 - 1; i >= 0; i--)
+        {
+            heapify(res, data.size(), i, cmp);
+        }
+
+        for (auto i = n - 1; i > 0; i--)
+        {
+            std::swap(res[0], res[i]);
+            heapify(res, i, 0, cmp);
+        }
+
+        return res;
+    }
+};
+
+class radix_sort final : public sort_strategy<int>
+{
+
+private:
+
+    std::vector<int> sort_by_digit(const std::vector<int>& data, int exp, bool ascending) const
+    {
+        std::vector<int> output(data.size());
+        std::vector<int> count(10, 0);
+
+        for (auto i = 0; i < data.size(); i++)
+        {
+            auto digit = (data[i] / exp) % 10;
+            count[digit]++;
+        }
+
+        if (ascending)
+        {
+            for (auto i = 1; i < 10; i++)
+            {
+                count[i] += count[i - 1];
+            }
+        }
+        else 
+        {
+            for (auto i = 8; i >= 0; i--)
+            {
+                count[i] += count[i + 1];
+            }
+        }
+
+        for (int i = data.size() - 1; i >= 0; i--)
+        {
+            auto digit = (data[i] / exp) % 10;
+            output[count[digit] - 1] = data[i];
+            count[digit]--;
+        }
+
+        return output;
+    }
+
+public:
+
+    radix_sort() = default;
+
+    ~radix_sort() override = default;
+
+    std::vector<int> sort(std::vector<int> const& data, std::function<bool(int const&, int const&)> const& cmp) const override
+    {
+        std::vector<int> res(data);
+        if (res.size() == 0)
+        {
+            return res;
+        }
+
+        auto ascending = comp(1, 2);
+        auto max_elem = *std::max_element(res.begin(), res.end());
+        auto exp = 1;
+        while (max_elem / exp > 0)
+        {
+            res = sort_by_digit(res, exp, ascending);
+            exp *= 10;
+        }
+
         return res;
     }
 };
