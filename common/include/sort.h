@@ -143,7 +143,7 @@ public:
                 while (cmp(temp, res[j - gap]) && j >= gap)
                 {
                     res[j] = res[j - gap];
-                    j -= gap
+                    j -= gap;
                 }
 
                 res[j] = temp;

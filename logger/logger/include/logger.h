@@ -72,10 +72,10 @@ public:
     logger const* critical(
         std::string const& message) const noexcept;
 
-protected:
+public:
 
     static std::string severity_to_string(
-        logger::severity severity);
+    logger::severity severity);
 
     static logger::severity string_to_severity(
         const std::string& value);
@@ -85,6 +85,8 @@ protected:
 
     static logger::log_type string_to_log_type(
         const std::string& value);
+
+protected:
 
     static std::string current_datetime_to_string() noexcept;
     static std::string current_date_to_string() noexcept;

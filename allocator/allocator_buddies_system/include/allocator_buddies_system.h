@@ -7,6 +7,7 @@
 #include <logger_guardant.h>
 #include <typename_holder.h>
 #include <mutex>
+#include <cmath>
 
 class allocator_buddies_system final:
     private allocator_guardant,

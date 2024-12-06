@@ -10,6 +10,8 @@ class client_logger final :
     public logger
 {
 
+friend class client_logger_builder;
+
 public:
 
     struct log_stream final
@@ -31,7 +33,6 @@ public:
 
 private:
 
-    friend class client_logger_builder;
     static std::map<std::string, std::weak_ptr<log_stream>> _log_streams;
 
     std::map<std::string, std::pair<std::shared_ptr<log_stream>, logger::severity>> _files_severity;
