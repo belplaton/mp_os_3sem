@@ -2858,8 +2858,8 @@ binary_search_tree<tkey, tvalue>::obtain_between(
     while (it != it_end)
     {
         auto current_key = (*it)->key;
-        auto lower_cmp_res = _keys_comparer(current_key, lower_bound);
-        auto upper_cmp_res = _keys_comparer(current_key, upper_bound);
+        auto lower_cmp_res = this->_keys_comparer(current_key, lower_bound);
+        auto upper_cmp_res = this->_keys_comparer(current_key, upper_bound);
 
         auto is_lower_bound_match = lower_bound_inclusive ? lower_cmp_res >= 0 : lower_cmp_res > 0;
         auto is_upper_bound_match = upper_bound_inclusive ? upper_cmp_res <= 0 : upper_cmp_res < 0;

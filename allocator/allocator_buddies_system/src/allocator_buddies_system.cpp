@@ -110,7 +110,7 @@ allocator_buddies_system::allocator_buddies_system(
     block_set_degree(block_char, space_size_power_of_two);
     set_first_free_block(block_char);
 
-    std::cout << reinterpret_cast<unsigned>(free_block_get_prev(block_char)) << " AND " << reinterpret_cast<unsigned>(free_block_get_next(block_char)) << std::endl;
+    std::cout << reinterpret_cast<size_t>(free_block_get_prev(block_char)) << " AND " << reinterpret_cast<size_t>(free_block_get_next(block_char)) << std::endl;
 
     oss.str("");
     oss << "Memory in constructed allocator: " << get_blocks_info_str() << "\n";
