@@ -1,6 +1,8 @@
 # Specific
 .vs/
 out/
+cmake-build-debug/
+cmake-build-debug-event-trace/
 
 # Prerequisites
 *.d
