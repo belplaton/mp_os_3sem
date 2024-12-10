@@ -650,7 +650,7 @@ protected:
         
     public:
         
-        tvalue dispose(
+        virtual tvalue dispose(
             tkey const &key);
         
         void set_disposal_strategy(
@@ -2488,7 +2488,7 @@ void binary_search_tree<tkey, tvalue>::insertion_template_method::insert(
     else
     {
         *top = reinterpret_cast<typename binary_search_tree<tkey, tvalue>::node*>(allocate_with_guard(obtain_node_size()));
-        construct_node(*top, key, std::forward<tvalue&&>(value));
+        construct_node(*top, key, std::forward<tvalue>(value));
         balance(path_to_node_with_key);
     }
 
@@ -2630,6 +2630,10 @@ tvalue binary_search_tree<tkey, tvalue>::disposal_template_method::dispose(
             break;
         case binary_search_tree<tkey, tvalue>::disposal_of_nonexistent_key_attempt_strategy::throw_an_exception:
             throw binary_search_tree<tkey, tvalue>::disposal_of_nonexistent_key_attempt_exception(key);
+        default:
+            throw not_implemented(
+"tvalue binary_search_tree<tkey, tvalue>::disposal_template_method::dispose(tkey const &key)",
+    "Not implemented disposal strategy");
         }
     }
     else
@@ -3246,11 +3250,11 @@ void binary_search_tree<tkey, tvalue>::double_left_rotation(
     if (at_grandparent_first)
     {
         small_left_rotation(subtree_root, validate);
-        small_right_rotation(subtree_root->right_subtree, validate);
+        small_left_rotation(subtree_root->right_subtree, validate);
     }
     else
     {
-        small_right_rotation(subtree_root->right_subtree, validate);
+        small_left_rotation(subtree_root->right_subtree, validate);
         small_left_rotation(subtree_root, validate);
     }
 
@@ -3278,11 +3282,11 @@ void binary_search_tree<tkey, tvalue>::double_right_rotation(
     if (at_grandparent_first)
     {
         small_right_rotation(subtree_root, validate);
-        small_left_rotation(subtree_root->left_subtree, validate);
+        small_right_rotation(subtree_root->left_subtree, validate);
     }
     else
     {
-        small_left_rotation(subtree_root->left_subtree, validate);
+        small_right_rotation(subtree_root->left_subtree, validate);
         small_right_rotation(subtree_root, validate);
     }
 
