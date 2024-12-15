@@ -162,7 +162,7 @@ TEST(splayTreePositiveTests, test1)
         {
             {
                 "splay_tree_tests_logs.txt",
-                logger::severity::trace
+                logger::severity::trace | logger::severity::debug
             },
         });
     
