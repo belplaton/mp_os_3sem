@@ -2712,8 +2712,9 @@ tvalue const &binary_search_tree<tkey, tvalue>::obtaining_template_method::obtai
     }
     else
     {
+        auto return_value = &(*top)->value;
         balance(path_to_node_with_key);
-        return (*top)->value;
+        return *return_value;
     }
 
     //throw not_implemented("template<typename tkey, typename tvalue> tvalue const &binary_search_tree<tkey, tvalue>::obtaining_template_method::obtain(tkey const &)", "your code should be here...");
