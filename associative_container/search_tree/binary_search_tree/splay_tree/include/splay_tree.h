@@ -181,13 +181,13 @@ void splay_tree<tkey, tvalue>::tree_splayer::make_splay(
         {
             auto **grandparent = path.top();
             path.pop();
-            (*grandparent)->left_subtree == parent
+            (*grandparent)->left_subtree == *parent
                 ? ((*parent)->left_subtree == *to_splay
                     ? _tree->double_right_rotation(*grandparent, true)
                     : _tree->big_right_rotation(*grandparent))
-                : (*parent->left_subtree == *to_splay
-                    ? _tree->big_left_rotation(*grandparent)
-                    : _tree->double_left_rotation(*grandparent, true));
+                : ((*parent)->right_subtree == *to_splay
+                    ? _tree->double_left_rotation(*grandparent, true)
+                    : _tree->big_left_rotation(*grandparent));
             to_splay = grandparent;
         }
     }
@@ -201,8 +201,10 @@ template<
 splay_tree<tkey, tvalue>::insertion_template_method::insertion_template_method(
     splay_tree<tkey, tvalue> *tree,
     typename binary_search_tree<tkey, tvalue>::insertion_of_existent_key_attempt_strategy insertion_strategy):
-    binary_search_tree<tkey, tvalue>::insertion_template_method(dynamic_cast<binary_search_tree<tkey, tvalue> *>(tree)),
-    tree_splayer(tree)
+    binary_search_tree<tkey, tvalue>::insertion_template_method(
+        dynamic_cast<binary_search_tree<tkey, tvalue> *>(tree),
+        insertion_strategy),
+    splay_tree<tkey, tvalue>::tree_splayer(tree)
 {
 
 }
@@ -264,7 +266,7 @@ tvalue splay_tree<tkey, tvalue>::disposal_template_method::dispose(tkey const &k
             return tvalue();
             break;
         case binary_search_tree<tkey, tvalue>::disposal_of_nonexistent_key_attempt_strategy::throw_an_exception:
-            throw binary_search_tree<tkey, tvalue>::disposal_of_nonexistent_key_attempt_exception(key);
+            throw typename binary_search_tree<tkey, tvalue>::disposal_of_nonexistent_key_attempt_exception(key);
         default:
             throw not_implemented(
 "tvalue splay_tree<tkey, tvalue>::disposal_template_method::dispose(tkey const &key)",
@@ -274,35 +276,36 @@ tvalue splay_tree<tkey, tvalue>::disposal_template_method::dispose(tkey const &k
     else
     {
         balance(path_to_node_with_key);
-        auto node_to_remove = *this->_tree;
+
+        auto node_to_remove = binary_search_tree<tkey, tvalue>::disposal_template_method::get_root();
         auto return_value = node_to_remove->value;
 
         if (node_to_remove->left_subtree == nullptr)
         {
-            *this->_tree = node_to_remove->right_subtree;
+            binary_search_tree<tkey, tvalue>::disposal_template_method::set_root(node_to_remove->right_subtree);
         }
         else if (node_to_remove->right_subtree == nullptr)
         {
-            *this->_tree = node_to_remove->left_subtree;
+            binary_search_tree<tkey, tvalue>::disposal_template_method::set_root(node_to_remove->left_subtree);
         }
         else
         {
             std::stack<typename binary_search_tree<tkey, tvalue>::node**> path_to_smallest_node {};
             auto* smallest = node_to_remove->right_subtree;
-            *this->_tree = smallest;
+            binary_search_tree<tkey, tvalue>::disposal_template_method::set_root(smallest);
 
-            path_to_smallest_node.push(smallest);
+            path_to_smallest_node.push(&smallest);
             while (smallest->left_subtree != nullptr)
             {
                 smallest = smallest->left_subtree;
-                path_to_smallest_node.push(smallest);
+                path_to_smallest_node.push(&smallest);
             }
 
             balance(path_to_smallest_node);
-            (*this->_tree)->left_subtree = node_to_remove->left_subtree;
+            binary_search_tree<tkey, tvalue>::disposal_template_method::get_root()->left_subtree = node_to_remove->left_subtree;
         }
 
-        delete node_to_remove;
+        this->deallocate_with_guard(node_to_remove);
         return return_value;
     }
 }
@@ -313,7 +316,7 @@ template<
 void splay_tree<tkey, tvalue>::disposal_template_method::balance(
     std::stack<typename binary_search_tree<tkey, tvalue>::node **> &path)
 {
-    tree_splayer::make(path);
+    tree_splayer::make_splay(path);
 }
 
 #pragma region splay_tree consturctors
@@ -339,7 +342,19 @@ splay_tree<tkey, tvalue>::splay_tree(
     logger *logger,
     typename binary_search_tree<tkey, tvalue>::insertion_of_existent_key_attempt_strategy insertion_strategy,
     typename binary_search_tree<tkey, tvalue>::disposal_of_nonexistent_key_attempt_strategy disposal_strategy):
-    binary_search_tree<tkey, tvalue>(comparer, allocator, logger, insertion_strategy, disposal_strategy)
+    binary_search_tree<tkey, tvalue>(
+        new (allocator_guardant::allocate_with_guard_static(allocator,
+            sizeof(splay_tree<tkey, tvalue>::insertion_template_method)))
+            splay_tree<tkey, tvalue>::insertion_template_method(this, insertion_strategy),
+        new (allocator_guardant::allocate_with_guard_static(allocator,
+            sizeof(splay_tree<tkey, tvalue>::obtaining_template_method)))
+            splay_tree<tkey, tvalue>::obtaining_template_method(this),
+        new (allocator_guardant::allocate_with_guard_static(allocator,
+            sizeof(splay_tree<tkey, tvalue>::disposal_template_method)))
+            splay_tree<tkey, tvalue>::disposal_template_method(this, disposal_strategy),
+        comparer,
+        allocator,
+        logger)
 {
 
 }

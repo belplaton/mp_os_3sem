@@ -10,6 +10,17 @@ void *allocator_guardant::allocate_with_guard(
         : target_allocator->allocate(value_size, values_count);
 }
 
+void *allocator_guardant::allocate_with_guard_static(
+    allocator *allocator,
+    size_t value_size,
+    size_t values_count)
+{
+    return allocator == nullptr
+        ? ::operator new(value_size * values_count)
+        : allocator->allocate(value_size, values_count);
+}
+
+
 void allocator_guardant::deallocate_with_guard(
     void *at) const
 {

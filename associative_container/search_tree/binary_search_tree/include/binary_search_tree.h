@@ -43,9 +43,9 @@ protected:
 
         virtual ~node() noexcept = default;
 
-        static node* copy_node_hierarchy(node* other);
+        static node* copy_node_hierarchy(node* other, binary_search_tree<tkey, tvalue>* tree);
         
-        static void clear_node_hierarchy(node** other);
+        static void clear_node_hierarchy(node** other, binary_search_tree<tkey, tvalue>* tree);
 
     };
 
@@ -206,7 +206,7 @@ public:
 
     private:
 
-        std::stack<node*> traversal_stack;
+        std::stack<std::pair<node*, int>> traversal_stack;
         iterator_data* current_data;
     
     public:
@@ -238,7 +238,7 @@ public:
 
     private:
 
-        std::stack<node*> traversal_stack;
+        std::stack<std::pair<node*, int>> traversal_stack;
         iterator_data* current_data;
     
     public:
@@ -270,7 +270,7 @@ public:
 
     private:
 
-        std::stack<node*> traversal_stack;
+        std::stack<std::pair<node*, int>> traversal_stack;
         iterator_data* current_data;
     
     public:
@@ -302,7 +302,7 @@ public:
 
     private:
 
-        std::stack<node*> traversal_stack;
+        std::stack<std::pair<node*, int>> traversal_stack;
         iterator_data* current_data;
     
     public:
@@ -562,6 +562,10 @@ protected:
         std::stack<node**> obtain_path(
             tkey const& key_to_obtain_path_to);
 
+        void set_root(node* new_root);
+
+        node* get_root();
+
     protected:
     
         [[nodiscard]] logger *get_logger() const noexcept final;
@@ -659,7 +663,7 @@ protected:
         typename binary_search_tree<tkey, tvalue>::disposal_of_nonexistent_key_attempt_strategy get_disposal_strategy() noexcept;
     
     protected:
-        
+
         virtual void balance(
             std::stack<typename binary_search_tree<tkey, tvalue>::node **> &path);
     
@@ -672,7 +676,7 @@ protected:
     #pragma endregion template methods definition
 
 private:
-    
+
     node *_root;
     
     insertion_template_method *_insertion_template;
@@ -852,16 +856,19 @@ template<
     typename tkey,
     typename tvalue>
 typename binary_search_tree<tkey, tvalue>::node* binary_search_tree<tkey, tvalue>::node::copy_node_hierarchy(
-    typename binary_search_tree<tkey, tvalue>::node* other)
+    typename binary_search_tree<tkey, tvalue>::node* other,
+    binary_search_tree<tkey, tvalue>* tree)
 {
     if (other == nullptr)
     {
         return nullptr;
     }
 
-    auto* new_node = new typename binary_search_tree<tkey, tvalue>::node(other->key, other->value);
-    new_node->left_subtree = binary_search_tree<tkey, tvalue>::node::copy_node_hierarchy(other->left_subtree);
-    new_node->right_subtree = binary_search_tree<tkey, tvalue>::node::copy_node_hierarchy(other->right_subtree);
+    auto* new_node = tree->allocate_with_guard(tree->_insertion_template.obtain_node_size());
+    allocator::construct(new_node, other->key, other->value);
+
+    new_node->left_subtree = binary_search_tree<tkey, tvalue>::node::copy_node_hierarchy(other->left_subtree, tree);
+    new_node->right_subtree = binary_search_tree<tkey, tvalue>::node::copy_node_hierarchy(other->right_subtree, tree);
     return new_node;
 }
 
@@ -869,7 +876,8 @@ template<
     typename tkey,
     typename tvalue>
 void binary_search_tree<tkey, tvalue>::node::clear_node_hierarchy(
-    binary_search_tree<tkey, tvalue>::node** other)
+    typename binary_search_tree<tkey, tvalue>::node** other,
+    binary_search_tree<tkey, tvalue>* tree)
 {
     if (other == nullptr || *other == nullptr)
     {
@@ -893,7 +901,7 @@ void binary_search_tree<tkey, tvalue>::node::clear_node_hierarchy(
             nodes_to_delete.push(current->right_subtree);
         }
 
-        delete current;
+        tree->deallocate_with_guard(current);
     }
 
     *other = nullptr;
@@ -1404,7 +1412,7 @@ binary_search_tree<tkey, tvalue>::infix_iterator::infix_iterator(
         auto current = subtree_root;
         while (current)
         {
-            traversal_stack.push(current);
+            traversal_stack.push({current, traversal_stack.size()});
             if (current->left_subtree == nullptr)
             {
                 current_data = new iterator_data(traversal_stack.size() - 1, current->key, current->value);
@@ -1465,32 +1473,35 @@ typename binary_search_tree<tkey, tvalue>::infix_iterator &binary_search_tree<tk
         return *this;
     }
 
-    auto* current = traversal_stack.top();
+    auto [current, depth] = traversal_stack.top();
     traversal_stack.pop();
 
     if (current->right_subtree)
     {
-        traversal_stack.push(current);
+        traversal_stack.push({current, depth});
         current = current->right_subtree;
+        ++depth;
 
         while (current)
         {
-            traversal_stack.push(current);
+            traversal_stack.push({current, depth});
             current = current->left_subtree;
+            ++depth;
         }
 
         delete current_data;
-        current_data = new iterator_data(traversal_stack.size() - 1, traversal_stack.top()->key, traversal_stack.top()->value);
+        auto [current, depth] = traversal_stack.top();
+        current_data = new iterator_data(depth, current->key, current->value);
         return *this;
     }
 
     while (!traversal_stack.empty())
     {
-        auto *parent = traversal_stack.top();
+        auto [parent, parent_depth] = traversal_stack.top();
         if (parent->left_subtree == current)
         {
             delete current_data;
-            current_data = new iterator_data(traversal_stack.size() - 1, parent->key, parent->value);
+            current_data = new iterator_data(parent_depth, parent->key, parent->value);
             return *this;
         }
 
@@ -1539,7 +1550,7 @@ binary_search_tree<tkey, tvalue>::infix_const_iterator::infix_const_iterator(
         auto current = subtree_root;
         while (current)
         {
-            traversal_stack.push(current);
+            traversal_stack.push({current, traversal_stack.size()});
             if (current->left_subtree == nullptr)
             {
                 current_data = new iterator_data(traversal_stack.size() - 1, current->key, current->value);
@@ -1601,32 +1612,35 @@ typename binary_search_tree<tkey, tvalue>::infix_const_iterator &binary_search_t
         return *this;
     }
 
-    auto* current = traversal_stack.top();
+    auto [current, depth] = traversal_stack.top();
     traversal_stack.pop();
 
     if (current->right_subtree)
     {
-        traversal_stack.push(current);
+        traversal_stack.push({current, depth});
         current = current->right_subtree;
+        ++depth;
 
         while (current)
         {
-            traversal_stack.push(current);
+            traversal_stack.push({current, depth});
             current = current->left_subtree;
+            ++depth;
         }
 
         delete current_data;
-        current_data = new iterator_data(traversal_stack.size() - 1, traversal_stack.top()->key, traversal_stack.top()->value);
+        auto [current, depth] = traversal_stack.top();
+        current_data = new iterator_data(depth, current->key, current->value);
         return *this;
     }
 
     while (!traversal_stack.empty())
     {
-        auto *parent = traversal_stack.top();
+        auto [parent, parent_depth] = traversal_stack.top();
         if (parent->left_subtree == current)
         {
             delete current_data;
-            current_data = new iterator_data(traversal_stack.size() - 1, parent->key, parent->value);
+            current_data = new iterator_data(parent_depth, parent->key, parent->value);
             return *this;
         }
 
@@ -1675,7 +1689,7 @@ binary_search_tree<tkey, tvalue>::infix_reverse_iterator::infix_reverse_iterator
         auto current = subtree_root;
         while (current)
         {
-            traversal_stack.push(current);
+            traversal_stack.push({current, traversal_stack.size()});
             if (current->right_subtree == nullptr)
             {
                 current_data = new iterator_data(traversal_stack.size() - 1, current->key, current->value);
@@ -1737,32 +1751,35 @@ typename binary_search_tree<tkey, tvalue>::infix_reverse_iterator &binary_search
         return *this;
     }
 
-    auto* current = traversal_stack.top();
+    auto [current, depth] = traversal_stack.top();
     traversal_stack.pop();
 
     if (current->left_subtree)
     {
-        traversal_stack.push(current);
+        traversal_stack.push({current, depth});
         current = current->left_subtree;
+        ++depth;
 
         while (current)
         {
-            traversal_stack.push(current);
+            traversal_stack.push({current, depth});
             current = current->right_subtree;
+            ++depth;
         }
 
         delete current_data;
-        current_data = new iterator_data(traversal_stack.size() - 1, traversal_stack.top()->key, traversal_stack.top()->value);
+        auto [current, depth] = traversal_stack.top();
+        current_data = new iterator_data(depth, current->key, current->value);
         return *this;
     }
 
     while (!traversal_stack.empty())
     {
-        auto *parent = traversal_stack.top();
+        auto [parent, parent_depth] = traversal_stack.top();
         if (parent->right_subtree == current)
         {
             delete current_data;
-            current_data = new iterator_data(traversal_stack.size() - 1, parent->key, parent->value);
+            current_data = new iterator_data(parent_depth, parent->key, parent->value);
             return *this;
         }
 
@@ -1811,7 +1828,7 @@ binary_search_tree<tkey, tvalue>::infix_const_reverse_iterator::infix_const_reve
         auto current = subtree_root;
         while (current)
         {
-            traversal_stack.push(current);
+            traversal_stack.push({current, traversal_stack.size()});
             if (current->right_subtree == nullptr)
             {
                 current_data = new iterator_data(traversal_stack.size() - 1, current->key, current->value);
@@ -1872,32 +1889,35 @@ typename binary_search_tree<tkey, tvalue>::infix_const_reverse_iterator &binary_
         return *this;
     }
 
-    auto* current = traversal_stack.top();
+    auto [current, depth] = traversal_stack.top();
     traversal_stack.pop();
 
     if (current->left_subtree)
     {
-        traversal_stack.push(current);
+        traversal_stack.push({current, depth});
         current = current->left_subtree;
+        ++depth;
 
         while (current)
         {
-            traversal_stack.push(current);
+            traversal_stack.push({current, depth});
             current = current->right_subtree;
+            ++depth;
         }
 
         delete current_data;
-        current_data = new iterator_data(traversal_stack.size() - 1, traversal_stack.top()->key, traversal_stack.top()->value);
+        auto [current, depth] = traversal_stack.top();
+        current_data = new iterator_data(depth, current->key, current->value);
         return *this;
     }
 
     while (!traversal_stack.empty())
     {
-        auto *parent = traversal_stack.top();
+        auto [parent, parent_depth] = traversal_stack.top();
         if (parent->right_subtree == current)
         {
             delete current_data;
-            current_data = new iterator_data(traversal_stack.size() - 1, parent->key, parent->value);
+            current_data = new iterator_data(parent_depth, parent->key, parent->value);
             return *this;
         }
 
@@ -2537,6 +2557,23 @@ std::stack<typename binary_search_tree<tkey, tvalue>::node**> binary_search_tree
 template<
     typename tkey,
     typename tvalue>
+void binary_search_tree<tkey, tvalue>::template_method_basics::set_root(
+    binary_search_tree<tkey, tvalue>::node* new_root)
+{
+    _tree->_root = new_root;
+}
+
+template<
+    typename tkey,
+    typename tvalue>
+typename binary_search_tree<tkey, tvalue>::node* binary_search_tree<tkey, tvalue>::template_method_basics::get_root()
+{
+    return _tree->_root;
+}
+
+template<
+    typename tkey,
+    typename tvalue>
 [[nodiscard]] inline logger *binary_search_tree<tkey, tvalue>::template_method_basics::get_logger() const noexcept
 {
     return _tree->get_logger();
@@ -2551,14 +2588,14 @@ template<
     typename tkey,
     typename tvalue>
 binary_search_tree<tkey, tvalue>::insertion_template_method::insertion_template_method(
-    binary_search_tree<tkey, tvalue> *tree,
+binary_search_tree<tkey, tvalue> *tree,
     typename binary_search_tree<tkey, tvalue>::insertion_of_existent_key_attempt_strategy insertion_strategy):
-    binary_search_tree<tkey, tvalue>::template_method_basics::template_method_basics(tree),
+    binary_search_tree<tkey, tvalue>::template_method_basics(tree),
     insertion_strategy(insertion_strategy)
 {
     //throw not_implemented("template<typename tkey, typename tvalue>binary_search_tree<tkey, tvalue>::insertion_template_method::insertion_template_method(binary_search_tree<tkey, tvalue> *, typename binary_search_tree<tkey, tvalue>::insertion_of_existent_key_strategy)", "your code should be here...");
 }
-#include <sstream>
+
 template<
     typename tkey,
     typename tvalue>
@@ -2582,9 +2619,6 @@ void binary_search_tree<tkey, tvalue>::insertion_template_method::insert(
     }
     else
     {
-        std::ostringstream str1;
-        (str1 << "Target key to insert: " << key);
-        this->debug_with_guard(str1.str());
         *top = reinterpret_cast<typename binary_search_tree<tkey, tvalue>::node*>(allocate_with_guard(obtain_node_size()));
         construct_node(*top, key, std::forward<tvalue>(value));
         balance(path_to_node_with_key);
@@ -2772,9 +2806,7 @@ tvalue binary_search_tree<tkey, tvalue>::disposal_template_method::dispose(
             *current = smallest_node;
         }
 
-        // TODO: fix this (use own allocator)
-        delete node_to_remove;
-
+        deallocate_with_guard(node_to_remove);
         balance(path_to_node_with_key);
         return return_value;
     }
@@ -2854,9 +2886,15 @@ binary_search_tree<tkey, tvalue>::binary_search_tree(
     typename binary_search_tree<tkey, tvalue>::insertion_of_existent_key_attempt_strategy insertion_strategy,
     typename binary_search_tree<tkey, tvalue>::disposal_of_nonexistent_key_attempt_strategy disposal_strategy):
     binary_search_tree(
-        new binary_search_tree<tkey, tvalue>::insertion_template_method(this, insertion_strategy),
-        new binary_search_tree<tkey, tvalue>::obtaining_template_method(this),
-        new binary_search_tree<tkey, tvalue>::disposal_template_method(this, disposal_strategy),
+        new (allocator_guardant::allocate_with_guard_static(allocator,
+            sizeof(binary_search_tree<tkey, tvalue>::insertion_template_method)))
+            binary_search_tree<tkey, tvalue>::insertion_template_method(this, insertion_strategy),
+        new (allocator_guardant::allocate_with_guard_static(allocator,
+            sizeof(binary_search_tree<tkey, tvalue>::obtaining_template_method)))
+            binary_search_tree<tkey, tvalue>::obtaining_template_method(this),
+        new (allocator_guardant::allocate_with_guard_static(allocator,
+            sizeof(binary_search_tree<tkey, tvalue>::disposal_template_method)))
+            binary_search_tree<tkey, tvalue>::disposal_template_method(this, disposal_strategy),
         keys_comparer,
         allocator,
         logger)
@@ -2870,15 +2908,21 @@ template<
 binary_search_tree<tkey, tvalue>::binary_search_tree(
     binary_search_tree<tkey, tvalue> const &other) :
     binary_search_tree(
-        new binary_search_tree<tkey, tvalue>::insertion_template_method(this, other._insertion_template->get_insertion_strategy()),
-        new binary_search_tree<tkey, tvalue>::obtaining_template_method(this),
-        new binary_search_tree<tkey, tvalue>::disposal_template_method(this, other._disposal_template->get_disposal_strategy()),
+        new (allocator_guardant::allocate_with_guard_static(other.get_allocator(),
+            sizeof(binary_search_tree<tkey, tvalue>::insertion_template_method)))
+            binary_search_tree<tkey, tvalue>::insertion_template_method(this, other._insertion_template->get_insertion_strategy()),
+        new (allocator_guardant::allocate_with_guard_static(other.get_allocator(),
+            sizeof(binary_search_tree<tkey, tvalue>::obtaining_template_method)))
+            binary_search_tree<tkey, tvalue>::obtaining_template_method(this),
+        new (allocator_guardant::allocate_with_guard_static(other.get_allocator(),
+            sizeof(binary_search_tree<tkey, tvalue>::disposal_template_method)))
+            binary_search_tree<tkey, tvalue>::disposal_template_method(this, other._disposal_template->get_disposal_strategy()),
         other._keys_comparer,
         other.get_allocator(),
         other.get_logger()
     )
 {
-    _root = copy_node_hierarchy(other._root);
+    _root = copy_node_hierarchy(other._root, this);
     //throw not_implemented("template<typename tkey, typename tvalue> binary_search_tree<tkey, tvalue>::binary_search_tree(binary_search_tree<tkey, tvalue> const &)", "your code should be here...");
 }
 
@@ -2910,7 +2954,7 @@ binary_search_tree<tkey, tvalue> &binary_search_tree<tkey, tvalue>::operator=(
     if (this != &other)
     {
         clear();
-        _root = copy_node_hierarchy(other._root);
+        _root = copy_node_hierarchy(other._root, this);
     }
 
     return *this;
@@ -3033,7 +3077,7 @@ template<
     typename tvalue>
 void binary_search_tree<tkey, tvalue>::clear()
 {
-    binary_search_tree<tkey, tvalue>::node::clear_node_hierarchy(&_root);
+    binary_search_tree<tkey, tvalue>::node::clear_node_hierarchy(&_root, this);
 }
 
 
@@ -3312,6 +3356,21 @@ void binary_search_tree<tkey, tvalue>::big_left_rotation(
     binary_search_tree<tkey, tvalue>::node *&subtree_root,
     bool validate) const
 {
+    if (subtree_root == nullptr)
+    {
+        throw std::logic_error("Trying to perform BLR on nullptr subtree_root.");
+    }
+
+    if (subtree_root->right_subtree == nullptr)
+    {
+        throw std::logic_error("Trying to perform BLR on a node without a right subtree.");
+    }
+
+    if (subtree_root->right_subtree->left_subtree == nullptr)
+    {
+        throw std::logic_error("Trying to perform BLR on a node without a right-left subtree.");
+    }
+
     small_right_rotation(subtree_root->right_subtree, validate);
     small_left_rotation(subtree_root, validate);
     //throw not_implemented("template<typename tkey, typename tvalue> void binary_search_tree<tkey, tvalue>::big_left_rotation(binary_search_tree<tkey, tvalue>::node *&, bool) const", "your code should be here...");
@@ -3324,6 +3383,21 @@ void binary_search_tree<tkey, tvalue>::big_right_rotation(
     binary_search_tree<tkey, tvalue>::node *&subtree_root,
     bool validate) const
 {
+    if (subtree_root == nullptr)
+    {
+        throw std::logic_error("Trying to perform BRR on nullptr subtree_root.");
+    }
+
+    if (subtree_root->left_subtree == nullptr)
+    {
+        throw std::logic_error("Trying to perform BRR on a node without a left subtree.");
+    }
+
+    if (subtree_root->left_subtree->right_subtree == nullptr)
+    {
+        throw std::logic_error("Trying to perform BRR on a node without a left-right subtree.");
+    }
+
     small_left_rotation(subtree_root->left_subtree, validate);
     small_right_rotation(subtree_root, validate);
     //throw not_implemented("template<typename tkey, typename tvalue> void binary_search_tree<tkey, tvalue>::big_right_rotation(binary_search_tree<tkey, tvalue>::node *&, bool) const", "your code should be here...");
@@ -3347,10 +3421,15 @@ void binary_search_tree<tkey, tvalue>::double_left_rotation(
         throw std::logic_error("Trying to perform DLR on a node without a right subtree.");
     }
 
+    if (subtree_root->right_subtree->right_subtree == nullptr)
+    {
+        throw std::logic_error("Trying to perform DLR on a node without a right-right subtree.");
+    }
+
     if (at_grandparent_first)
     {
         small_left_rotation(subtree_root, validate);
-        small_left_rotation(subtree_root->right_subtree, validate);
+        small_left_rotation(subtree_root, validate);
     }
     else
     {
@@ -3380,10 +3459,15 @@ void binary_search_tree<tkey, tvalue>::double_right_rotation(
         throw std::logic_error("Trying to perform DRR on a node without a left subtree.");
     }
 
+    if (subtree_root->left_subtree->left_subtree == nullptr)
+    {
+        throw std::logic_error("Trying to perform DRR on a node without a left-left subtree.");
+    }
+
     if (at_grandparent_first)
     {
         small_right_rotation(subtree_root, validate);
-        small_right_rotation(subtree_root->left_subtree, validate);
+        small_right_rotation(subtree_root, validate);
     }
     else
     {

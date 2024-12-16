@@ -19,6 +19,10 @@ public:
     void deallocate_with_guard(
         void *at) const;
 
+    [[nodiscard]] static void *allocate_with_guard_static(allocator* allocator,
+        size_t value_size,
+        size_t values_count = 1);
+
 public:
     
     [[nodiscard]] inline virtual allocator *get_allocator() const = 0;
