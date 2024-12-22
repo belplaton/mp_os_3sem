@@ -806,11 +806,11 @@ protected:
     
     #pragma region subtree rotations definition
     
-    void small_left_rotation(
+    void virtual small_left_rotation(
         typename binary_search_tree<tkey, tvalue>::node *&subtree_root,
         bool validate = true) const;
     
-    void small_right_rotation(
+    void virtual small_right_rotation(
         typename binary_search_tree<tkey, tvalue>::node *&subtree_root,
         bool validate = true) const;
     
