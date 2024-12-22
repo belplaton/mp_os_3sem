@@ -291,18 +291,18 @@ tvalue splay_tree<tkey, tvalue>::disposal_template_method::dispose(tkey const &k
         else
         {
             std::stack<typename binary_search_tree<tkey, tvalue>::node**> path_to_smallest_node {};
-            auto* smallest = node_to_remove->right_subtree;
-            binary_search_tree<tkey, tvalue>::disposal_template_method::set_root(smallest);
+            auto* biggest = node_to_remove->left_subtree;
+            binary_search_tree<tkey, tvalue>::disposal_template_method::set_root(biggest);
 
-            path_to_smallest_node.push(&smallest);
-            while (smallest->left_subtree != nullptr)
+            path_to_smallest_node.push(&biggest);
+            while (biggest->right_subtree != nullptr)
             {
-                smallest = smallest->left_subtree;
-                path_to_smallest_node.push(&smallest);
+                biggest = biggest->right_subtree;
+                path_to_smallest_node.push(&biggest);
             }
 
             balance(path_to_smallest_node);
-            binary_search_tree<tkey, tvalue>::disposal_template_method::get_root()->left_subtree = node_to_remove->left_subtree;
+            binary_search_tree<tkey, tvalue>::disposal_template_method::get_root()->right_subtree = node_to_remove->right_subtree;
         }
 
         this->deallocate_with_guard(node_to_remove);
