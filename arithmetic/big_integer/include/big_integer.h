@@ -371,6 +371,16 @@ public:
         std::istream &stream,
         big_integer &value);
 
+    bool is_negate() const;
+
+    bool is_zero() const;
+
+    size_t get_digits_count() const;
+
+    unsigned int get_digit(unsigned int index) const;
+
+    big_integer& change_sign();
+
 private:
 
     [[nodiscard]] allocator *get_allocator() const noexcept override;
