@@ -93,7 +93,7 @@ std::pair<big_integer, big_integer> big_integer::trivial_division::divide_intern
 {
     if (dividend.is_zero())
     {
-        return std::make_pair(dividend, big_integer());
+        return std::make_pair(big_integer(), big_integer());
     }
 
     if (divisor.is_zero())
@@ -103,8 +103,44 @@ std::pair<big_integer, big_integer> big_integer::trivial_division::divide_intern
 
     auto& left = dividend.is_negate() ? -dividend : dividend;
     auto& right = divisor.is_negate() ? -divisor : divisor;
-
     auto is_negative = dividend.is_negate() ^ divisor.is_negate();
+
+    auto result = big_integer(allocator);
+    auto carry = big_integer(allocator);
+
+    for (auto i = 0; i < left.get_digits_count(); i++)
+    {
+        carry <<= (sizeof(unsigned int) << 3);
+        carry += left.get_digit(left.get_digits_count() - i - 1);
+
+        auto current_result = 0u;
+        while (carry >= left)
+        {
+            carry -= right;
+            current_result++;
+        }
+
+        result <<= (sizeof(unsigned int) << 3);
+        result += current_result;
+    }
+
+    if (is_negative)
+    {
+        result.change_sign();
+    }
+
+    if (dividend.is_negate())
+    {
+        carry.change_sign();
+    }
+
+    return { result, carry };
+    /* division by half-search
+
+    auto& left = dividend.is_negate() ? -dividend : dividend;
+    auto& right = divisor.is_negate() ? -divisor : divisor;
+    auto is_negative = dividend.is_negate() ^ divisor.is_negate();
+
     auto start_range = big_integer(allocator);
     auto end_range = big_integer(allocator);
     auto potential_result = big_integer(allocator);
@@ -150,6 +186,7 @@ std::pair<big_integer, big_integer> big_integer::trivial_division::divide_intern
     } while (potential_result != 0);
 
     throw std::logic_error("error in divide function!");;
+    */
 }
 
 big_integer &big_integer::trivial_division::divide(
