@@ -10,7 +10,6 @@
 #include <allocator_guardant.h>
 #include <not_implemented.h>
 #include <search_tree.h>
-#include <exception>
 #include <utility>
 
 template<
@@ -20,8 +19,30 @@ class binary_search_tree:
     public search_tree<tkey, tvalue>
 {
 
+public:
+
+    struct iterator_data
+    {
+
+    public:
+
+        unsigned int depth;
+
+        tkey key;
+
+        tvalue value;
+
+    public:
+
+        explicit iterator_data(
+            unsigned int depth,
+            tkey const &key,
+            tvalue const &value);
+
+    };
+
 protected:
-    
+
     struct node
     {
     
@@ -43,6 +64,8 @@ protected:
 
         virtual ~node() noexcept = default;
 
+        virtual iterator_data* construct_iterator_data(int depth);
+
         static node* copy_node_hierarchy(node* other, binary_search_tree<tkey, tvalue>* tree);
         
         static void clear_node_hierarchy(node** other, binary_search_tree<tkey, tvalue>* tree);
@@ -52,26 +75,6 @@ protected:
 public:
     
     #pragma region iterators definition
-    
-    struct iterator_data
-    {
-    
-    public:
-        
-        unsigned int depth;
-        
-        tkey key;
-        
-        tvalue value;
-    
-    public:
-    
-        explicit iterator_data(
-            unsigned int depth,
-            tkey const &key,
-            tvalue const &value);
-        
-    };
     
     class prefix_iterator final
     {
@@ -855,6 +858,16 @@ binary_search_tree<tkey, tvalue>::node::node(
 template<
     typename tkey,
     typename tvalue>
+typename binary_search_tree<tkey, tvalue>::iterator_data*
+    binary_search_tree<tkey, tvalue>::node::construct_iterator_data(int depth)
+{
+    iterator_data* data = new iterator_data(depth, key, value);
+    return data;
+}
+
+template<
+    typename tkey,
+    typename tvalue>
 typename binary_search_tree<tkey, tvalue>::node* binary_search_tree<tkey, tvalue>::node::copy_node_hierarchy(
     typename binary_search_tree<tkey, tvalue>::node* other,
     binary_search_tree<tkey, tvalue>* tree)
@@ -940,7 +953,7 @@ binary_search_tree<tkey, tvalue>::prefix_iterator::prefix_iterator(
     if (subtree_root)
     {
         traversal_stack.push({subtree_root, 0});
-        current_data = new iterator_data(0, subtree_root->key, subtree_root->value);
+        current_data = subtree_root->construct_iterator_data(0);
     }
 
     //throw not_implemented("template<typename tkey, typename tvalue> binary_search_tree<tkey, tvalue>::prefix_iterator::prefix_iterator(typename binary_search_tree<tkey, tvalue>::node *)", "your code should be here...");
@@ -1009,7 +1022,7 @@ typename binary_search_tree<tkey, tvalue>::prefix_iterator &binary_search_tree<t
     {
         auto [next_node, next_depth] = traversal_stack.top();
         delete current_data;
-        current_data = new iterator_data(next_depth, next_node->key, next_node->value);
+        current_data = next_node->construct_iterator_data(next_depth);
     }
     else
     {
@@ -1055,7 +1068,7 @@ binary_search_tree<tkey, tvalue>::prefix_const_iterator::prefix_const_iterator(
 {
     if (subtree_root) {
         traversal_stack.push({subtree_root, 0});
-        current_data = new iterator_data(0, subtree_root->key, subtree_root->value);
+        current_data = subtree_root->construct_iterator_data(0);
     }
 
     //throw not_implemented("template<typename tkey, typename tvalue> binary_search_tree<tkey, tvalue>::prefix_const_iterator::prefix_const_iterator(typename binary_search_tree<tkey, tvalue>::node *)", "your code should be here...");
@@ -1126,7 +1139,7 @@ typename binary_search_tree<tkey, tvalue>::prefix_const_iterator &binary_search_
     {
         auto [next_node, next_depth] = traversal_stack.top();
         delete current_data;
-        current_data = new iterator_data(next_depth, next_node->key, next_node->value);
+        current_data = next_node->construct_iterator_data(next_depth);
     }
     else
     {
@@ -1173,7 +1186,7 @@ binary_search_tree<tkey, tvalue>::prefix_reverse_iterator::prefix_reverse_iterat
     if (subtree_root)
     {
         traversal_stack.push({subtree_root, 0});
-        current_data = new iterator_data(0, subtree_root->key, subtree_root->value);
+        current_data = subtree_root->construct_iterator_data(0);
     }
 
     //throw not_implemented("template<typename tkey, typename tvalue> binary_search_tree<tkey, tvalue>::prefix_reverse_iterator::prefix_reverse_iterator(typename binary_search_tree<tkey, tvalue>::node *)", "your code should be here...");
@@ -1245,7 +1258,7 @@ typename binary_search_tree<tkey, tvalue>::prefix_reverse_iterator &binary_searc
     {
         auto [next_node, next_depth] = traversal_stack.top();
         delete current_data;
-        current_data = new iterator_data(next_depth, next_node->key, next_node->value);
+        current_data = next_node->construct_iterator_data(next_depth);
     }
     else
     {
@@ -1292,7 +1305,7 @@ binary_search_tree<tkey, tvalue>::prefix_const_reverse_iterator::prefix_const_re
     if (subtree_root)
     {
         traversal_stack.push({subtree_root, 0});
-        current_data = new iterator_data(0, subtree_root->key, subtree_root->value);
+        current_data = subtree_root->construct_iterator_data(0);
     }
     //throw not_implemented("template<typename tkey, typename tvalue> binary_search_tree<tkey, tvalue>::prefix_const_reverse_iterator::prefix_const_reverse_iterator(typename binary_search_tree<tkey, tvalue>::node *)", "your code should be here...");
 }
@@ -1363,7 +1376,7 @@ typename binary_search_tree<tkey, tvalue>::prefix_const_reverse_iterator &binary
     {
         auto [next_node, next_depth] = traversal_stack.top();
         delete current_data;
-        current_data = new iterator_data(next_depth, next_node->key, next_node->value);
+        current_data = next_node->construct_iterator_data(next_depth);
     }
     else
     {
@@ -1415,7 +1428,7 @@ binary_search_tree<tkey, tvalue>::infix_iterator::infix_iterator(
             traversal_stack.push({current, traversal_stack.size()});
             if (current->left_subtree == nullptr)
             {
-                current_data = new iterator_data(traversal_stack.size() - 1, current->key, current->value);
+                current_data = current->construct_iterator_data(traversal_stack.size() - 1);
                 break;
             }
 
@@ -1491,7 +1504,7 @@ typename binary_search_tree<tkey, tvalue>::infix_iterator &binary_search_tree<tk
 
         delete current_data;
         auto [current, depth] = traversal_stack.top();
-        current_data = new iterator_data(depth, current->key, current->value);
+        current_data = current->construct_iterator_data(depth);
         return *this;
     }
 
@@ -1501,7 +1514,7 @@ typename binary_search_tree<tkey, tvalue>::infix_iterator &binary_search_tree<tk
         if (parent->left_subtree == current)
         {
             delete current_data;
-            current_data = new iterator_data(parent_depth, parent->key, parent->value);
+            current_data = parent->construct_iterator_data(parent_depth);
             return *this;
         }
 
@@ -1553,7 +1566,7 @@ binary_search_tree<tkey, tvalue>::infix_const_iterator::infix_const_iterator(
             traversal_stack.push({current, traversal_stack.size()});
             if (current->left_subtree == nullptr)
             {
-                current_data = new iterator_data(traversal_stack.size() - 1, current->key, current->value);
+                current_data = current->construct_iterator_data(traversal_stack.size() - 1);
                 break;
             }
 
@@ -1630,7 +1643,7 @@ typename binary_search_tree<tkey, tvalue>::infix_const_iterator &binary_search_t
 
         delete current_data;
         auto [current, depth] = traversal_stack.top();
-        current_data = new iterator_data(depth, current->key, current->value);
+        current_data = current->construct_iterator_data(depth);
         return *this;
     }
 
@@ -1640,7 +1653,7 @@ typename binary_search_tree<tkey, tvalue>::infix_const_iterator &binary_search_t
         if (parent->left_subtree == current)
         {
             delete current_data;
-            current_data = new iterator_data(parent_depth, parent->key, parent->value);
+            current_data = parent->construct_iterator_data(parent_depth);
             return *this;
         }
 
@@ -1692,7 +1705,7 @@ binary_search_tree<tkey, tvalue>::infix_reverse_iterator::infix_reverse_iterator
             traversal_stack.push({current, traversal_stack.size()});
             if (current->right_subtree == nullptr)
             {
-                current_data = new iterator_data(traversal_stack.size() - 1, current->key, current->value);
+                current_data = current->construct_iterator_data(traversal_stack.size() - 1);
             }
 
             current = current->right_subtree;
@@ -1769,7 +1782,7 @@ typename binary_search_tree<tkey, tvalue>::infix_reverse_iterator &binary_search
 
         delete current_data;
         auto [current, depth] = traversal_stack.top();
-        current_data = new iterator_data(depth, current->key, current->value);
+        current_data = current->construct_iterator_data(depth);
         return *this;
     }
 
@@ -1779,7 +1792,7 @@ typename binary_search_tree<tkey, tvalue>::infix_reverse_iterator &binary_search
         if (parent->right_subtree == current)
         {
             delete current_data;
-            current_data = new iterator_data(parent_depth, parent->key, parent->value);
+            current_data = parent->construct_iterator_data(parent_depth);
             return *this;
         }
 
@@ -1831,7 +1844,7 @@ binary_search_tree<tkey, tvalue>::infix_const_reverse_iterator::infix_const_reve
             traversal_stack.push({current, traversal_stack.size()});
             if (current->right_subtree == nullptr)
             {
-                current_data = new iterator_data(traversal_stack.size() - 1, current->key, current->value);
+                current_data = current->construct_iterator_data(traversal_stack.size() - 1);
             }
 
             current = current->right_subtree;
@@ -1907,7 +1920,7 @@ typename binary_search_tree<tkey, tvalue>::infix_const_reverse_iterator &binary_
 
         delete current_data;
         auto [current, depth] = traversal_stack.top();
-        current_data = new iterator_data(depth, current->key, current->value);
+        current_data = current->construct_iterator_data(depth);
         return *this;
     }
 
@@ -1917,7 +1930,7 @@ typename binary_search_tree<tkey, tvalue>::infix_const_reverse_iterator &binary_
         if (parent->right_subtree == current)
         {
             delete current_data;
-            current_data = new iterator_data(parent_depth, parent->key, parent->value);
+            current_data = parent->construct_iterator_data(parent_depth);
             return *this;
         }
 
@@ -1983,7 +1996,7 @@ binary_search_tree<tkey, tvalue>::postfix_iterator::postfix_iterator(
         if (!post_order_stack.empty())
         {
             auto [next_node, next_depth] = post_order_stack.top();
-            current_data = new iterator_data(next_depth, next_node->key, next_node->value);
+            current_data = next_node->construct_iterator_data(next_depth);
         }
     }
     //throw not_implemented("template<typename tkey, typename tvalue> binary_search_tree<tkey, tvalue>::postfix_iterator::postfix_iterator(typename binary_search_tree<tkey, tvalue>::node *)", "your code should be here...");
@@ -2043,7 +2056,7 @@ typename binary_search_tree<tkey, tvalue>::postfix_iterator &binary_search_tree<
     {
         auto [next_node, depth] = post_order_stack.top();
         delete current_data;
-        current_data = new iterator_data(depth, next_node->key, next_node->value);
+        current_data = next_node->construct_iterator_data(depth);
     }
     else
     {
@@ -2108,7 +2121,7 @@ binary_search_tree<tkey, tvalue>::postfix_const_iterator::postfix_const_iterator
         if (!post_order_stack.empty())
         {
             auto [next_node, next_depth] = post_order_stack.top();
-            current_data = new iterator_data(next_depth, next_node->key, next_node->value);
+            current_data = next_node->construct_iterator_data(next_depth);
         }
     }
     //throw not_implemented("template<typename tkey, typename tvalue> binary_search_tree<tkey, tvalue>::postfix_const_iterator::postfix_const_iterator(typename binary_search_tree<tkey, tvalue>::node *)", "your code should be here...");
@@ -2168,7 +2181,7 @@ typename binary_search_tree<tkey, tvalue>::postfix_const_iterator &binary_search
     {
         auto [next_node, depth] = post_order_stack.top();
         delete current_data;
-        current_data = new iterator_data(depth, next_node->key, next_node->value);
+        current_data = next_node->construct_iterator_data(depth);
     }
     else
     {
@@ -2233,7 +2246,7 @@ binary_search_tree<tkey, tvalue>::postfix_reverse_iterator::postfix_reverse_iter
         if (!post_order_stack.empty())
         {
             auto [next_node, next_depth] = post_order_stack.top();
-            current_data = new iterator_data(next_depth, next_node->key, next_node->value);
+            current_data = next_node->construct_iterator_data(next_depth);
         }
     }
     //throw not_implemented("template<typename tkey, typename tvalue> binary_search_tree<tkey, tvalue>::postfix_reverse_iterator::postfix_reverse_iterator(typename binary_search_tree<tkey, tvalue>::node *)", "your code should be here...");
@@ -2293,7 +2306,7 @@ typename binary_search_tree<tkey, tvalue>::postfix_reverse_iterator &binary_sear
     {
         auto [next_node, depth] = post_order_stack.top();
         delete current_data;
-        current_data = new iterator_data(depth, next_node->key, next_node->value);
+        current_data = next_node->construct_iterator_data(depth);
     }
     else
     {
@@ -2358,7 +2371,7 @@ binary_search_tree<tkey, tvalue>::postfix_const_reverse_iterator::postfix_const_
         if (!post_order_stack.empty())
         {
             auto [next_node, next_depth] = post_order_stack.top();
-            current_data = new iterator_data(next_depth, next_node->key, next_node->value);
+            current_data = next_node->construct_iterator_data(next_depth);
         }
     }
     //throw not_implemented("template<typename tkey, typename tvalue> binary_search_tree<tkey, tvalue>::postfix_const_reverse_iterator::postfix_const_reverse_iterator(typename binary_search_tree<tkey, tvalue>::node *)", "your code should be here...");
@@ -2418,7 +2431,7 @@ typename binary_search_tree<tkey, tvalue>::postfix_const_reverse_iterator &binar
     {
         auto [next_node, depth] = post_order_stack.top();
         delete current_data;
-        current_data = new iterator_data(depth, next_node->key, next_node->value);
+        current_data = next_node->construct_iterator_data(depth);
     }
     else
     {

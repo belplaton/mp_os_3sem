@@ -27,6 +27,8 @@ private:
 
         static void update_height(node* other);
 
+        typename binary_search_tree<tkey, tvalue>::iterator_data* construct_iterator_data(int depth) override;
+
     };
 
 public:
@@ -179,10 +181,24 @@ template<
     typename tvalue>
 void AVL_tree<tkey, tvalue>::node::update_height(node *other)
 {
-    other->height = std::max(
-        other->left_subtree != nullptr ? dynamic_cast<node *>(other->left_subtree)->height : 0,
-        other->right_subtree != nullptr ? dynamic_cast<node *>(other->right_subtree)->height : 0)
-        + 1;
+    if (other != nullptr)
+    {
+        other->height = std::max(
+            other->left_subtree != nullptr ? dynamic_cast<node *>(other->left_subtree)->height : 0,
+            other->right_subtree != nullptr ? dynamic_cast<node *>(other->right_subtree)->height : 0)
+            + 1;
+    }
+}
+
+template<
+    typename tkey,
+    typename tvalue>
+typename binary_search_tree<tkey, tvalue>::iterator_data*
+    AVL_tree<tkey, tvalue>::node::construct_iterator_data(
+    int depth)
+{
+    iterator_data* data = new iterator_data(depth, this->key, this->value, height);
+    return data;
 }
 
 template<
@@ -206,8 +222,6 @@ void AVL_tree<tkey, tvalue>::small_left_rotation(
     typename binary_search_tree<tkey, tvalue>::node *&subtree_root, bool validate) const
 {
     binary_search_tree<tkey, tvalue>::small_left_rotation(subtree_root, validate);
-    node::update_height(dynamic_cast<AVL_tree<tkey, tvalue>::node*>(subtree_root->left_subtree));
-    node::update_height(dynamic_cast<AVL_tree<tkey, tvalue>::node*>(subtree_root));
 }
 
 template<
@@ -217,8 +231,6 @@ void AVL_tree<tkey, tvalue>::small_right_rotation(
     typename binary_search_tree<tkey, tvalue>::node *&subtree_root, bool validate) const
 {
     binary_search_tree<tkey, tvalue>::small_right_rotation(subtree_root, validate);
-    node::update_height(dynamic_cast<AVL_tree<tkey, tvalue>::node*>(subtree_root->right_subtree));
-    node::update_height(dynamic_cast<AVL_tree<tkey, tvalue>::node*>(subtree_root));
 }
 
 template<
@@ -295,6 +307,11 @@ void AVL_tree<tkey, tvalue>::insertion_template_method::balance(
                 }
             }
         }
+
+        auto avl_node = dynamic_cast<node*>(*parent);
+        node::update_height(dynamic_cast<node*>(avl_node->left_subtree));
+        node::update_height(dynamic_cast<node*>(avl_node->right_subtree));
+        node::update_height(avl_node);
     }
 }
 
@@ -365,6 +382,11 @@ void AVL_tree<tkey, tvalue>::disposal_template_method::balance(
                 }
             }
         }
+
+        auto avl_node = dynamic_cast<node*>(*parent);
+        node::update_height(dynamic_cast<node*>(avl_node->left_subtree));
+        node::update_height(dynamic_cast<node*>(avl_node->right_subtree));
+        node::update_height(avl_node);
     }
 }
 
