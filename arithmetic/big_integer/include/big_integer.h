@@ -110,6 +110,14 @@ private:
     class trivial_division final:
         public division
     {
+
+    private:
+
+        std::pair<big_integer, big_integer> divide_internal(
+            big_integer const &dividend,
+            big_integer const &divisor,
+            allocator* allocator,
+            big_integer::multiplication_rule multiplication_rule) const;
     
     public:
         
@@ -168,6 +176,13 @@ private:
     allocator *_allocator;
 
 public:
+
+    big_integer(
+        allocator *allocator = nullptr);
+
+    big_integer(
+        int digit,
+        allocator *allocator = nullptr);
 
     big_integer(
         int const *digits,

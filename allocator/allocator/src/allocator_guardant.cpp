@@ -56,7 +56,6 @@ void *allocator_guardant::allocate_with_guard_static(
         : allocator->allocate(value_size, values_count);
 }
 
-
 void allocator_guardant::deallocate_with_guard(
     void *at) const
 {
@@ -64,4 +63,13 @@ void allocator_guardant::deallocate_with_guard(
     return target_allocator == nullptr
         ? ::operator delete(at)
         : target_allocator->deallocate(at);
+}
+
+void allocator_guardant::deallocate_with_guard_static(
+    allocator *allocator,
+    void *at)
+{
+    return allocator == nullptr
+        ? ::operator delete(at)
+        : allocator->deallocate(at);
 }
