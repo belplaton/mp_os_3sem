@@ -101,7 +101,7 @@ public:
         for (auto i = 0; i < data.size() - 1; i++)
         {
             auto min_index = i;
-            for (auto j = i + 1; j < data.size(); i++)
+            for (auto j = i + 1; j < data.size(); j++)
             {
                 if (cmp(res[j], res[min_index]))
                 {
@@ -193,7 +193,7 @@ public:
     std::vector<T> sort(std::vector<T> const& data, std::function<bool(T const&, T const&)> const& cmp) const override
     {
         std::vector<T> res(data);
-        qsort(data, 0, res.size() - 1, cmp);
+        qsort(res, 0, res.size() - 1, cmp);
         return res;
     }
 };
@@ -236,12 +236,12 @@ public:
     std::vector<T> sort(std::vector<T> const& data, std::function<bool(T const&, T const&)> const& cmp) const override
     {
         std::vector<T> res(data);
-        for (auto i = data.size() / 2 - 1; i >= 0; i--)
+        for (auto i = data.size() / 2 - 1; i >= 0; --i)
         {
             heapify(res, data.size(), i, cmp);
         }
 
-        for (auto i = n - 1; i > 0; i--)
+        for (auto i = data.size() - 1; i > 0; --i)
         {
             std::swap(res[0], res[i]);
             heapify(res, i, 0, cmp);
@@ -306,7 +306,7 @@ public:
             return res;
         }
 
-        auto ascending = comp(1, 2);
+        auto ascending = cmp(1, 2);
         auto max_elem = *std::max_element(res.begin(), res.end());
         auto exp = 1;
         while (max_elem / exp > 0)

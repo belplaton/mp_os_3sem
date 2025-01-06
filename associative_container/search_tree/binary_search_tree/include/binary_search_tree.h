@@ -210,6 +210,7 @@ public:
     private:
 
         std::stack<std::pair<node*, int>> traversal_stack;
+        std::stack<node*> post_order_stack;
         iterator_data* current_data;
     
     public:
@@ -242,6 +243,7 @@ public:
     private:
 
         std::stack<std::pair<node*, int>> traversal_stack;
+        std::stack<node*> post_order_stack;
         iterator_data* current_data;
     
     public:
@@ -274,6 +276,7 @@ public:
     private:
 
         std::stack<std::pair<node*, int>> traversal_stack;
+        std::stack<node*> post_order_stack;
         iterator_data* current_data;
     
     public:
@@ -306,6 +309,7 @@ public:
     private:
 
         std::stack<std::pair<node*, int>> traversal_stack;
+        std::stack<node*> post_order_stack;
         iterator_data* current_data;
     
     public:
@@ -1418,7 +1422,8 @@ template<
     typename tkey,
     typename tvalue>
 binary_search_tree<tkey, tvalue>::infix_iterator::infix_iterator(
-    typename binary_search_tree<tkey, tvalue>::node *subtree_root) : current_data(nullptr), traversal_stack()
+    typename binary_search_tree<tkey, tvalue>::node *subtree_root) :
+    traversal_stack(), post_order_stack(), current_data(nullptr)
 {
     if (subtree_root)
     {
@@ -1489,8 +1494,24 @@ typename binary_search_tree<tkey, tvalue>::infix_iterator &binary_search_tree<tk
     auto [current, depth] = traversal_stack.top();
     traversal_stack.pop();
 
+    if (!post_order_stack.empty())
+    {
+        auto current_PO = post_order_stack.top();
+        while (current_PO == current)
+        {
+            current_PO = post_order_stack.top();
+            auto temp = traversal_stack.top();
+            current = temp.first;
+            depth = temp.second;
+
+            post_order_stack.pop();
+            traversal_stack.pop();
+        }
+    }
+
     if (current->right_subtree)
     {
+        post_order_stack.push(current);
         traversal_stack.push({current, depth});
         current = current->right_subtree;
         ++depth;
@@ -1556,7 +1577,8 @@ template<
     typename tkey,
     typename tvalue>
 binary_search_tree<tkey, tvalue>::infix_const_iterator::infix_const_iterator(
-    typename binary_search_tree<tkey, tvalue>::node *subtree_root) : current_data(nullptr), traversal_stack()
+    typename binary_search_tree<tkey, tvalue>::node *subtree_root) :
+    traversal_stack(), post_order_stack(), current_data(nullptr)
 {
     if (subtree_root)
     {
@@ -1628,8 +1650,24 @@ typename binary_search_tree<tkey, tvalue>::infix_const_iterator &binary_search_t
     auto [current, depth] = traversal_stack.top();
     traversal_stack.pop();
 
+    if (!post_order_stack.empty())
+    {
+        auto current_PO = post_order_stack.top();
+        while (current_PO == current)
+        {
+            current_PO = post_order_stack.top();
+            auto temp = traversal_stack.top();
+            current = temp.first;
+            depth = temp.second;
+
+            post_order_stack.pop();
+            traversal_stack.pop();
+        }
+    }
+
     if (current->right_subtree)
     {
+        post_order_stack.push(current);
         traversal_stack.push({current, depth});
         current = current->right_subtree;
         ++depth;
@@ -1695,7 +1733,8 @@ template<
     typename tkey,
     typename tvalue>
 binary_search_tree<tkey, tvalue>::infix_reverse_iterator::infix_reverse_iterator(
-    typename binary_search_tree<tkey, tvalue>::node *subtree_root) : current_data(nullptr), traversal_stack()
+    typename binary_search_tree<tkey, tvalue>::node *subtree_root) :
+    traversal_stack(), post_order_stack(), current_data(nullptr)
 {
     if (subtree_root)
     {
@@ -1767,8 +1806,24 @@ typename binary_search_tree<tkey, tvalue>::infix_reverse_iterator &binary_search
     auto [current, depth] = traversal_stack.top();
     traversal_stack.pop();
 
+    if (!post_order_stack.empty())
+    {
+        auto current_PO = post_order_stack.top();
+        while (current_PO == current)
+        {
+            current_PO = post_order_stack.top();
+            auto temp = traversal_stack.top();
+            current = temp.first;
+            depth = temp.second;
+
+            post_order_stack.pop();
+            traversal_stack.pop();
+        }
+    }
+
     if (current->left_subtree)
     {
+        post_order_stack.push(current);
         traversal_stack.push({current, depth});
         current = current->left_subtree;
         ++depth;
@@ -1834,7 +1889,8 @@ template<
     typename tkey,
     typename tvalue>
 binary_search_tree<tkey, tvalue>::infix_const_reverse_iterator::infix_const_reverse_iterator(
-    typename binary_search_tree<tkey, tvalue>::node *subtree_root) : current_data(nullptr), traversal_stack()
+    typename binary_search_tree<tkey, tvalue>::node *subtree_root) :
+    traversal_stack(), post_order_stack(), current_data(nullptr)
 {
     if (subtree_root)
     {
@@ -1905,8 +1961,24 @@ typename binary_search_tree<tkey, tvalue>::infix_const_reverse_iterator &binary_
     auto [current, depth] = traversal_stack.top();
     traversal_stack.pop();
 
+    if (!post_order_stack.empty())
+    {
+        auto current_PO = post_order_stack.top();
+        while (current_PO == current)
+        {
+            current_PO = post_order_stack.top();
+            auto temp = traversal_stack.top();
+            current = temp.first;
+            depth = temp.second;
+
+            post_order_stack.pop();
+            traversal_stack.pop();
+        }
+    }
+
     if (current->left_subtree)
     {
+        post_order_stack.push(current);
         traversal_stack.push({current, depth});
         current = current->left_subtree;
         ++depth;
