@@ -114,7 +114,7 @@ std::pair<big_integer, big_integer> big_integer::trivial_division::divide_intern
         carry += left.get_digit(left.get_digits_count() - i - 1);
 
         auto current_result = 0u;
-        while (carry >= left)
+        while (carry >= right)
         {
             carry -= right;
             current_result++;
