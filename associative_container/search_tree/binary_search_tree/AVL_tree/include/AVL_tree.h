@@ -285,7 +285,7 @@ void AVL_tree<tkey, tvalue>::insertion_template_method::balance(
             if (balance_factor < 0)
             {
                 auto left_balance_factor = dynamic_cast<node *>((*parent)->left_subtree)->get_balance();
-                if (left_balance_factor > 0)
+                if (left_balance_factor <= 0)
                 {
                     dynamic_cast<AVL_tree<tkey, tvalue>*>(this->_tree)->small_right_rotation(*parent);
                 }
@@ -297,7 +297,7 @@ void AVL_tree<tkey, tvalue>::insertion_template_method::balance(
             else
             {
                 auto right_balance_factor = dynamic_cast<node *>((*parent)->right_subtree)->get_balance();
-                if (right_balance_factor > 0)
+                if (right_balance_factor <= 0)
                 {
                     dynamic_cast<AVL_tree<tkey, tvalue>*>(this->_tree)->small_left_rotation(*parent);
                 }
@@ -360,7 +360,7 @@ void AVL_tree<tkey, tvalue>::disposal_template_method::balance(
             if (balance_factor < 0)
             {
                 auto left_balance_factor = dynamic_cast<node *>((*parent)->left_subtree)->get_balance();
-                if (left_balance_factor > 0)
+                if (left_balance_factor <= 0)
                 {
                     dynamic_cast<AVL_tree<tkey, tvalue>*>(this->_tree)->small_right_rotation(*parent);
                 }
@@ -372,7 +372,7 @@ void AVL_tree<tkey, tvalue>::disposal_template_method::balance(
             else
             {
                 auto right_balance_factor = dynamic_cast<node *>((*parent)->right_subtree)->get_balance();
-                if (right_balance_factor > 0)
+                if (right_balance_factor <= 0)
                 {
                     dynamic_cast<AVL_tree<tkey, tvalue>*>(this->_tree)->small_left_rotation(*parent);
                 }
