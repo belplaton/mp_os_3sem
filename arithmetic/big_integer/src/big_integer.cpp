@@ -573,7 +573,7 @@ big_integer &big_integer::operator+=(
         }
     }
 
-    if (result_digits[max_count - 1] >> (sizeof(unsigned int) << 3) - 1 != 0)
+    if (result_digits[max_count - 1] >> ((sizeof(unsigned int) << 3) - 1) != 0)
     {
         result_digits.push_back(0);
     }
